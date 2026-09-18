@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle } from "lucide-react";
+import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle, ChevronDown } from "lucide-react";
 import { Household, User } from "../types";
 import { UserAvatar } from "./UserAvatar";
 
@@ -95,85 +95,91 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       <div className="header-tools">
-        {/* About Prognos & Principles */}
+        {/* Workspace / Circle Context Switcher */}
         <button
-          className="btn-subtle nav-about-btn"
-          onClick={onOpenAboutModal}
-          title="About Prognos & Forecasting Principles"
-          style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center", gap: "0.35rem" }}
-        >
-          <HelpCircle size={15} style={{ color: "var(--accent-brass)" }} />
-          <span className="desktop-only" style={{ fontSize: "0.75rem", fontWeight: 600 }}>About</span>
-        </button>
-
-        {/* Household Circle Switcher Button */}
-        <button
-          className="btn-subtle nav-household-btn"
+          className={`nav-workspace-chip nav-household-btn ${activeHousehold ? "has-circle" : ""}`}
           onClick={onOpenHouseholdModal}
           title="Manage household & private circles (invite codes, membership)"
-          style={{
-            padding: "0.4rem 0.75rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.35rem",
-            background: activeHousehold ? "rgba(245, 208, 97, 0.08)" : undefined,
-            borderColor: activeHousehold ? "var(--border-brass)" : undefined
-          }}
+          aria-label={`Circle workspace: ${activeHousehold ? activeHousehold.name : "All Circles"}`}
         >
-          <Home size={14} style={{ color: "var(--accent-brass)" }} />
-          <span className="nav-household-label" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+          <div className="workspace-icon-wrap">
+            <Home size={14} className="workspace-home-icon" />
+          </div>
+          <span className="nav-workspace-name nav-household-label">
             {activeHousehold ? activeHousehold.name : "Circles"}
           </span>
+          <ChevronDown size={12} className="nav-chevron desktop-only" />
         </button>
 
-        {/* Theme Mode Switcher */}
-        <button
-          className="btn-subtle theme-toggle-btn"
-          onClick={toggleTheme}
-          title={theme === "dark" ? "Switch to Field Ledger (Light Mode)" : "Switch to Night Observatory (Dark Mode)"}
-          style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center", gap: "0.35rem" }}
-        >
-          {theme === "dark" ? <Sun size={15} style={{ color: "var(--accent-brass)" }} /> : <Moon size={15} style={{ color: "var(--accent-brass)" }} />}
-          <span className="desktop-only" style={{ fontSize: "0.75rem", fontWeight: 600 }}>{theme === "dark" ? "Light" : "Dark"}</span>
-        </button>
+        <div className="nav-header-divider desktop-only" aria-hidden="true" />
+
+        {/* Ghost Utility Cluster */}
+        <div className="nav-utility-cluster" role="toolbar" aria-label="Observatory Utilities">
+          {/* Theme Mode Switcher */}
+          <button
+            className="nav-ghost-action theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to Field Ledger (Light Mode)" : "Switch to Night Observatory (Dark Mode)"}
+            aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === "dark" ? (
+              <Sun size={16} className="theme-toggle-icon" />
+            ) : (
+              <Moon size={16} className="theme-toggle-icon" />
+            )}
+          </button>
+
+          {/* About Prognos & Principles */}
+          <button
+            className="nav-ghost-action nav-about-btn"
+            onClick={onOpenAboutModal}
+            title="About Prognos & Forecasting Principles"
+            aria-label="About Prognos"
+          >
+            <HelpCircle size={16} />
+          </button>
+
+          {/* Archival Storage & Backup (STRICTLY ADMIN ONLY) */}
+          {currentUser?.isAdmin && (
+            <button
+              className="nav-ghost-action desktop-only"
+              onClick={onOpenBackupModal}
+              title="Archival Storage, Database Exports & Seeding (Administrator Only)"
+              aria-label="Database Archival & Seeding"
+            >
+              <Database size={15} />
+            </button>
+          )}
+        </div>
+
+        <div className="nav-header-divider desktop-only" aria-hidden="true" />
 
         {/* User Account / Google Sign-In Pill */}
         {currentUser ? (
           <button
-            className="observer-pill"
+            className="nav-profile-chip observer-pill"
             onClick={onOpenProfileModal}
-            title={`Account: ${currentUser.name}${currentUser.isAdmin ? " (Administrator)" : ""}`}
-            style={{
-              borderColor: currentUser.isAdmin ? "var(--border-brass)" : undefined
-            }}
+            title={`Observer: ${currentUser.name}${currentUser.isAdmin ? " (Administrator)" : ""}`}
+            aria-label={`Account profile for ${currentUser.name}`}
           >
-            <UserAvatar avatar={currentUser.avatar} name={currentUser.name} size={20} fontSize="1.05rem" />
-            <span className="observer-name" style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div className="nav-profile-avatar-wrap">
+              <UserAvatar avatar={currentUser.avatar} name={currentUser.name} size={22} fontSize="1.05rem" />
+            </div>
+            <span className="observer-name">
               {currentUser.name}
             </span>
             {currentUser.isAdmin && (
-              <span 
-                className="desktop-only"
-                style={{ 
-                  fontSize: "0.62rem", 
-                  padding: "0.1rem 0.35rem", 
-                  borderRadius: "4px", 
-                  background: "rgba(245, 208, 97, 0.2)", 
-                  color: "var(--accent-brass)", 
-                  fontWeight: 700,
-                  marginLeft: "0.15rem"
-                }}
-              >
+              <span className="nav-admin-badge desktop-only">
                 ADMIN
               </span>
             )}
+            <ChevronDown size={12} className="nav-chevron desktop-only" />
           </button>
         ) : (
           <button
-            className="btn-brass"
+            className="btn-brass nav-signin-btn"
             onClick={onOpenProfileModal}
             title="Sign In with Google"
-            style={{ padding: "0.4rem 0.85rem", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "0.45rem" }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -184,19 +190,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Sign In</span>
           </button>
         )}
-
-        {/* Archival Storage & Backup (STRICTLY ADMIN ONLY) */}
-        {currentUser?.isAdmin && (
-          <button
-            className="btn-subtle desktop-only"
-            onClick={onOpenBackupModal}
-            title="Archival Storage, Database Exports & Seeding (Administrator Only)"
-            style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center" }}
-          >
-            <Database size={15} style={{ color: "var(--accent-brass)" }} />
-          </button>
-        )}
       </div>
     </header>
   );
 };
+

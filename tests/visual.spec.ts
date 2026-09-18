@@ -198,9 +198,41 @@ test.describe("Prognos Visual & Functional Suite", () => {
     await themeBtn.click();
     await page.waitForTimeout(400);
 
-    // Capture desktop light mode navbar & toolbar
+    // Capture desktop light mode navbar & toolbar (signed out)
     await page.screenshot({
       path: path.join(ARTIFACTS_DIR, "headless_desktop_light.png"),
+      fullPage: false,
+    });
+
+    // Log in as Admin user to verify logged-in navbar tools in light mode
+    await page.evaluate(async () => {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+      const admin = users.find((u: any) => u.isAdmin) || users[0];
+      if (admin) {
+        localStorage.setItem("prognos_local_user_id", admin.id);
+      }
+    });
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    // Close about modal if present
+    if (await modalClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await modalClose.click();
+      await page.waitForTimeout(200);
+    }
+
+    // Capture desktop light mode with admin profile and workspace chip
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_desktop_navbar_admin_light.png"),
+      fullPage: false,
+    });
+
+    // Toggle back to dark mode and capture dark mode admin navbar
+    await page.locator(".theme-toggle-btn").click();
+    await page.waitForTimeout(400);
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_desktop_navbar_admin_dark.png"),
       fullPage: false,
     });
   });
