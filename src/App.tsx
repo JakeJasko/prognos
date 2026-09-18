@@ -502,7 +502,7 @@ export const App: React.FC = () => {
             setIsMobilePredictOpen(true);
             window.scrollTo({ top: 0, behavior: "smooth" });
             setTimeout(() => {
-              const input = document.querySelector(".creator-input") as HTMLInputElement | null;
+              const input = document.querySelector(".creator-input") as HTMLElement | null;
               if (input) input.focus();
             }, 150);
             return;
@@ -513,7 +513,7 @@ export const App: React.FC = () => {
             if (next) {
               window.scrollTo({ top: 0, behavior: "smooth" });
               setTimeout(() => {
-                const input = document.querySelector(".creator-input") as HTMLInputElement | null;
+                const input = document.querySelector(".creator-input") as HTMLElement | null;
                 if (input) input.focus();
               }, 150);
             }

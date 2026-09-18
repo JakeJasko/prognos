@@ -511,21 +511,76 @@ h1, h2, h3, .font-display {
   gap: 0.4rem;
 }
 
+/* Prediction Statement / Claim Entry */
+.creator-input-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.25rem;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.15rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.creator-input-container:focus-within {
+  border-color: var(--border-brass);
+  box-shadow: 0 0 0 3px rgba(245, 208, 97, 0.15), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: var(--bg-surface);
+}
+
 .creator-input {
   width: 100%;
+  min-height: 68px;
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 400;
+  font-size: 1.55rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   background: transparent;
   border: none;
   outline: none;
-  margin-bottom: 1.15rem;
+  resize: none;
+  padding: 0;
+  margin: 0;
+  display: block;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .creator-input::placeholder {
   color: var(--text-muted);
   font-style: italic;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.creator-input-hint {
+  position: absolute;
+  bottom: 6px;
+  right: 12px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-mono);
+}
+
+[data-theme="light"] .creator-input-container {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1.5px solid rgba(20, 26, 40, 0.16);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .creator-input-container:focus-within {
+  background: #ffffff;
+  border-color: var(--border-brass);
+  box-shadow: 0 0 0 3px rgba(148, 108, 10, 0.12), 0 3px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Tactile Probability Scrubber */
@@ -1383,9 +1438,19 @@ h1, h2, h3, .font-display {
     min-height: 38px;
   }
 
+  .creator-input-container {
+    padding: 0.75rem 0.95rem;
+    margin-bottom: 1rem;
+  }
+
   .creator-input {
-    font-size: 1.05rem !important; /* Min 16px to prevent iOS auto-zoom */
-    margin-bottom: 0.85rem;
+    font-size: 1.25rem !important; /* Prominent & legible on mobile without truncation */
+    min-height: 60px;
+    line-height: 1.35;
+  }
+
+  .creator-input-hint {
+    display: none;
   }
 
   .scrubber-panel {

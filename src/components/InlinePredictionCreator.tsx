@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, Calendar, ChevronDown, ChevronUp, Plus, Tag, ArrowRight, Globe, Home, Users, X } from "lucide-react";
 import { Household, User } from "../types";
 
@@ -43,6 +43,15 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
   const [resolveBy, setResolveBy] = useState(defaultDate.toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 68)}px`;
+    }
+  }, [title]);
 
   const ticks = [10, 25, 50, 65, 75, 85, 90, 95, 99];
 
@@ -309,15 +318,29 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
       )}
 
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="creator-input"
-          placeholder={visibility === "PUBLIC" ? "What public event do you predict? (e.g. Artemis II launches by Oct 2026)" : "What household prediction do you want to record? (e.g. Kitchen remodel finishes under budget)"}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          aria-label={visibility === "PUBLIC" ? "Public prediction claim or question" : "Household prediction claim or question"}
-          required
-        />
+        <div className="creator-input-container">
+          <textarea
+            ref={textareaRef}
+            rows={2}
+            className="creator-input"
+            placeholder={visibility === "PUBLIC" ? "What public event do you predict? (e.g. Artemis II launches by Oct 2026)" : "What household prediction do you want to record? (e.g. Kitchen remodel finishes under budget)"}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            aria-label={visibility === "PUBLIC" ? "Public prediction claim or question" : "Household prediction claim or question"}
+            required
+          />
+          {title.trim().length > 0 && (
+            <div className="creator-input-hint">
+              <span>↵ Enter to predict</span>
+            </div>
+          )}
+        </div>
 
         {/* Tactile Probability Scrubber */}
         <div className="scrubber-panel">

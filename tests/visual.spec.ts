@@ -42,6 +42,13 @@ test.describe("Prognos Visual & Functional Suite", () => {
     const val = await input.inputValue();
     expect(val.length).toBeGreaterThan(5);
 
+    // Verify textarea wrapping and prominent multi-line height
+    const creatorBox = await input.boundingBox();
+    expect(creatorBox).not.toBeNull();
+    if (creatorBox) {
+      expect(creatorBox.height).toBeGreaterThanOrEqual(60);
+    }
+
     // Switch to Leaderboard
     await leaderboardBtn.click();
     await expect(page.locator("h2", { hasText: "Forecasting Leaderboard" })).toBeVisible();
@@ -166,6 +173,20 @@ test.describe("Prognos Visual & Functional Suite", () => {
     await predictBtn.click();
     await page.waitForTimeout(400);
     await expect(creatorWrapper).toBeVisible();
+
+    // Verify mobile creator-input textarea is prominent and multiline
+    const mobileInput = page.locator(".creator-input");
+    await expect(mobileInput).toBeVisible();
+    await mobileInput.fill("Will the James Webb Space Telescope detect atmospheric biosignatures on an exoplanet by the end of 2027?");
+    const mBox = await mobileInput.boundingBox();
+    expect(mBox).not.toBeNull();
+    if (mBox) {
+      expect(mBox.height).toBeGreaterThanOrEqual(55);
+    }
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_creator_open.png"),
+      fullPage: false,
+    });
 
     // Close the creator
     await predictBtn.click();
