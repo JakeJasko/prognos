@@ -1,19 +1,17 @@
 import React from "react";
-import { Telescope, Target, CheckCircle2, XCircle, HelpCircle, Users, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { Stats, User } from "../types";
 import { CalibrationChart } from "./CalibrationChart";
 
 interface ObservatoryInstrumentProps {
   stats: Stats | null;
   currentUser: User | null;
-  users: User[];
   onOpenProfileModal: () => void;
 }
 
 export const ObservatoryInstrument: React.FC<ObservatoryInstrumentProps> = ({
   stats,
   currentUser,
-  users,
   onOpenProfileModal,
 }) => {
   return (
@@ -104,63 +102,6 @@ export const ObservatoryInstrument: React.FC<ObservatoryInstrumentProps> = ({
           <div style={{ color: "var(--text-muted)" }}>
             Win: <b>{stats?.accuracyRate !== null && stats?.accuracyRate !== undefined ? `${stats.accuracyRate}%` : "—"}</b>
           </div>
-        </div>
-      </div>
-
-      {/* Household Observers */}
-      <div className="instrument-card" style={{ padding: "1.25rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", fontWeight: 600 }}>
-            <Users size={14} style={{ color: "var(--accent-brass)" }} />
-            <span>Household Observers</span>
-          </div>
-
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={onOpenProfileModal}
-            style={{ fontSize: "0.75rem", padding: "0.2rem 0.4rem" }}
-          >
-            Manage
-          </button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          {users.map((u) => {
-            const isMe = u.id === currentUser?.id;
-            return (
-              <div
-                key={u.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0.45rem 0.65rem",
-                  borderRadius: "var(--radius-xs)",
-                  background: isMe ? "rgba(245, 208, 97, 0.08)" : "transparent",
-                  border: `1px solid ${isMe ? "var(--border-brass)" : "var(--border-dim)"}`,
-                  fontSize: "0.82rem",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span>{u.avatar || "🔭"}</span>
-                  <span style={{ fontWeight: isMe ? 700 : 500, color: isMe ? "var(--accent-brass)" : "var(--text-primary)" }}>
-                    {u.name}
-                  </span>
-                </div>
-
-                {isMe ? (
-                  <span style={{ fontSize: "0.7rem", color: "var(--accent-brass)", fontWeight: 700 }}>
-                    You (Active)
-                  </span>
-                ) : (
-                  <span style={{ fontSize: "0.68rem", color: "var(--text-dim)" }}>
-                    Forecaster
-                  </span>
-                )}
-              </div>
-            );
-          })}
         </div>
       </div>
     </aside>

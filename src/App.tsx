@@ -227,7 +227,6 @@ export const App: React.FC = () => {
           <ObservatoryInstrument
             stats={stats}
             currentUser={currentUser}
-            users={users}
             onOpenProfileModal={() => setIsProfileOpen(true)}
           />
         </main>
@@ -442,7 +441,6 @@ export const App: React.FC = () => {
           <ObservatoryInstrument
             stats={stats}
             currentUser={currentUser}
-            users={users}
             onOpenProfileModal={() => setIsProfileOpen(true)}
           />
         </main>
