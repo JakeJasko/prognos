@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, Telescope, Sparkles, Globe, Home, UserCheck, Trophy, X } from "lucide-react";
+import { Search, Telescope, Sparkles, Globe, Home, UserCheck, Trophy, Tag, Settings, X } from "lucide-react";
 import {
   fetchPredictions,
   fetchStats,
@@ -19,6 +19,7 @@ import { LeaderboardView } from "./components/LeaderboardView";
 import { HouseholdManagerModal } from "./components/HouseholdManagerModal";
 import { ProfileModal } from "./components/ProfileModal";
 import { BackupModal } from "./components/BackupModal";
+import { AboutModal } from "./components/AboutModal";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 
 export const App: React.FC = () => {
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [isHouseholdOpen, setIsHouseholdOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadInitialData = async () => {
@@ -100,6 +102,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadInitialData();
+    const seenAbout = localStorage.getItem("prognos_seen_about");
+    if (!seenAbout) {
+      setIsAboutOpen(true);
+    }
   }, []);
 
   const handleLoginSuccess = async (user: User) => {
@@ -215,6 +221,7 @@ export const App: React.FC = () => {
         onOpenHouseholdModal={() => setIsHouseholdOpen(true)}
         onOpenProfileModal={() => setIsProfileOpen(true)}
         onOpenBackupModal={() => setIsBackupOpen(true)}
+        onOpenAboutModal={() => setIsAboutOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -244,111 +251,127 @@ export const App: React.FC = () => {
               onSubmit={handleCreatePrediction}
             />
 
-            {/* Scope Bar (Public Commons vs Household Circle vs My Predictions) */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-dim)",
-              borderRadius: "var(--radius-sm)",
-              padding: "0.5rem 0.85rem",
-              marginBottom: "1rem",
-              flexWrap: "wrap",
-              gap: "0.5rem"
-            }}>
-              <div className="filter-pills" style={{ display: "flex", gap: "0.25rem" }}>
+            {/* Unified Filter Bar */}
+            <div className="unified-filter-bar">
+              {/* Scope Selector */}
+              <div className="filter-group filter-scope-group">
                 <button
                   type="button"
-                  className={`filter-pill ${scopeFilter === "all" ? "active" : ""}`}
+                  className={`unified-pill ${scopeFilter === "all" ? "active" : ""}`}
                   onClick={() => handleScopeChange("all")}
-                  style={{ fontSize: "0.78rem" }}
                 >
-                  All Visible
+                  All
                 </button>
                 <button
                   type="button"
-                  className={`filter-pill ${scopeFilter === "public" ? "active" : ""}`}
+                  className={`unified-pill ${scopeFilter === "public" ? "active" : ""}`}
                   onClick={() => handleScopeChange("public")}
-                  style={{ fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+                  title="Public Commons"
                 >
                   <Globe size={12} />
-                  <span>Public Commons</span>
+                  <span>Public</span>
                 </button>
                 <button
                   type="button"
-                  className={`filter-pill ${scopeFilter === "household" ? "active" : ""}`}
+                  className={`unified-pill ${scopeFilter === "household" ? "active" : ""}`}
                   onClick={() => handleScopeChange("household")}
-                  style={{ fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+                  title={activeHousehold ? `Circle: ${activeHousehold.name}` : "Circles"}
                 >
                   <Home size={12} />
-                  <span>{activeHousehold ? activeHousehold.name : "Household"}</span>
+                  <span>{activeHousehold ? activeHousehold.name : "Circles"}</span>
                 </button>
+                {scopeFilter === "household" && (
+                  <button
+                    type="button"
+                    className="toolbar-icon-btn"
+                    onClick={() => setIsHouseholdOpen(true)}
+                    title="Circle settings & invites"
+                  >
+                    <Settings size={12} />
+                  </button>
+                )}
                 <button
                   type="button"
-                  className={`filter-pill ${scopeFilter === "my" ? "active" : ""}`}
+                  className={`unified-pill ${scopeFilter === "my" ? "active" : ""}`}
                   onClick={() => handleScopeChange("my")}
-                  style={{ fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+                  title="My Claims"
                 >
                   <UserCheck size={12} />
-                  <span>My Claims</span>
+                  <span>Mine</span>
                 </button>
               </div>
 
-              {scopeFilter === "household" && (
+              <div className="filter-divider" />
+
+              {/* Status Selector */}
+              <div className="filter-group filter-status-group">
                 <button
                   type="button"
-                  className="btn-ghost"
-                  onClick={() => setIsHouseholdOpen(true)}
-                  style={{ fontSize: "0.72rem", color: "var(--accent-brass)", padding: "0.2rem 0.5rem" }}
+                  className={`unified-pill ${statusFilter === "active" ? "active" : ""}`}
+                  onClick={() => setStatusFilter("active")}
                 >
-                  Circle Settings & Invites
+                  Active <span className="pill-count">{activeCount}</span>
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  className={`unified-pill ${statusFilter === "due" ? "active" : ""}`}
+                  onClick={() => setStatusFilter("due")}
+                  title="Resolving within 7 days"
+                >
+                  Due Soon
+                </button>
+                <button
+                  type="button"
+                  className={`unified-pill ${statusFilter === "resolved" ? "active" : ""}`}
+                  onClick={() => setStatusFilter("resolved")}
+                >
+                  Resolved <span className="pill-count">{resolvedCount}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`unified-pill ${statusFilter === "all" ? "active" : ""}`}
+                  onClick={() => setStatusFilter("all")}
+                >
+                  All <span className="pill-count">{predictions.length}</span>
+                </button>
+              </div>
 
-            {/* Ledger Filter Section */}
-            <div className="ledger-filter-container">
-              <div className="ledger-filter-row">
-                <div className="filter-pills">
-                  <button
-                    type="button"
-                    className={`filter-pill ${statusFilter === "active" ? "active" : ""}`}
-                    onClick={() => setStatusFilter("active")}
-                  >
-                    Active ({activeCount})
-                  </button>
+              <div className="filter-spacer" />
 
-                  <button
-                    type="button"
-                    className={`filter-pill ${statusFilter === "due" ? "active" : ""}`}
-                    onClick={() => setStatusFilter("due")}
-                  >
-                    Due Soon
-                  </button>
+              {/* Search & Tags */}
+              <div className="filter-group filter-search-group">
+                {allTags.length > 0 && (
+                  <div className="unified-tag-wrapper">
+                    <Tag size={12} style={{ color: selectedTag ? "var(--accent-brass)" : "var(--text-muted)", flexShrink: 0 }} />
+                    <select
+                      className="unified-tag-select"
+                      value={selectedTag || ""}
+                      onChange={(e) => setSelectedTag(e.target.value || null)}
+                      aria-label="Filter by tag"
+                    >
+                      <option value="">All Tags</option>
+                      {allTags.map((t) => (
+                        <option key={t} value={t}>#{t}</option>
+                      ))}
+                    </select>
+                    {selectedTag && (
+                      <button
+                        type="button"
+                        className="search-clear-btn"
+                        onClick={() => setSelectedTag(null)}
+                        title="Clear tag filter"
+                      >
+                        <X size={11} />
+                      </button>
+                    )}
+                  </div>
+                )}
 
-                  <button
-                    type="button"
-                    className={`filter-pill ${statusFilter === "resolved" ? "active" : ""}`}
-                    onClick={() => setStatusFilter("resolved")}
-                  >
-                    Resolved ({resolvedCount})
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`filter-pill ${statusFilter === "all" ? "active" : ""}`}
-                    onClick={() => setStatusFilter("all")}
-                  >
-                    All ({predictions.length})
-                  </button>
-                </div>
-
-                <div className="search-input-wrapper">
-                  <Search size={14} style={{ opacity: 0.6, flexShrink: 0 }} />
+                <div className="unified-search-wrapper">
+                  <Search size={13} style={{ opacity: 0.6, flexShrink: 0 }} />
                   <input
                     type="text"
-                    placeholder="Filter observations..."
+                    placeholder="Filter claims..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -364,37 +387,6 @@ export const App: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              {allTags.length > 0 && (
-                <div className="ledger-tags-row">
-                  <span className="tags-label">Tags:</span>
-                  <div className="tags-scroll-container">
-                    {allTags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        className={`chip-btn ${selectedTag === tag ? "active" : ""}`}
-                        style={{
-                          borderColor: selectedTag === tag ? "var(--accent-brass)" : undefined,
-                          color: selectedTag === tag ? "var(--accent-brass)" : undefined,
-                        }}
-                        onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                    {selectedTag && (
-                      <button
-                        type="button"
-                        className="chip-btn clear-tag-btn"
-                        onClick={() => setSelectedTag(null)}
-                      >
-                        Clear tag filter ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Predictions Ledger List */}
@@ -447,6 +439,12 @@ export const App: React.FC = () => {
       )}
 
       {/* Modals */}
+      {isAboutOpen && (
+        <AboutModal
+          onClose={() => setIsAboutOpen(false)}
+        />
+      )}
+
       {isHouseholdOpen && (
         <HouseholdManagerModal
           currentUser={currentUser}

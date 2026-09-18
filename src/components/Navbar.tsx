@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Telescope, Database, Sun, Moon, Trophy, Home } from "lucide-react";
+import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle } from "lucide-react";
 import { Household, User } from "../types";
 
 interface NavbarProps {
@@ -10,6 +10,7 @@ interface NavbarProps {
   onOpenHouseholdModal: () => void;
   onOpenProfileModal: () => void;
   onOpenBackupModal: () => void;
+  onOpenAboutModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -20,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenHouseholdModal,
   onOpenProfileModal,
   onOpenBackupModal,
+  onOpenAboutModal,
 }) => {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
@@ -54,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Desktop View Tabs (Hidden on mobile where bottom nav is active) */}
+        {/* Desktop View Tabs */}
         <nav className="desktop-nav-tabs" style={{ alignItems: "center", gap: "0.25rem" }}>
           <button
             type="button"
@@ -79,6 +81,17 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       <div className="header-tools">
+        {/* About Prognos & Principles */}
+        <button
+          className="btn-subtle nav-about-btn"
+          onClick={onOpenAboutModal}
+          title="About Prognos & Forecasting Principles"
+          style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center", gap: "0.35rem" }}
+        >
+          <HelpCircle size={15} style={{ color: "var(--accent-brass)" }} />
+          <span className="desktop-only" style={{ fontSize: "0.75rem", fontWeight: 600 }}>About</span>
+        </button>
+
         {/* Household Circle Switcher Button */}
         <button
           className="btn-subtle nav-household-btn"

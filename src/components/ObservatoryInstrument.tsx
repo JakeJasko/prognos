@@ -6,48 +6,16 @@ import { CalibrationChart } from "./CalibrationChart";
 interface ObservatoryInstrumentProps {
   stats: Stats | null;
   currentUser: User | null;
-  onOpenProfileModal: () => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const ObservatoryInstrument: React.FC<ObservatoryInstrumentProps> = ({
   stats,
   currentUser,
-  onOpenProfileModal,
 }) => {
   return (
     <aside className="instrument-column">
-      {/* Prognos Etymology & Definition */}
-      <div className="instrument-card etymology-card">
-        <div className="etymology-header">
-          <div className="etymology-word">prog·nos</div>
-          <div className="etymology-phonetic">/ˈprɒɡ.nɒs/</div>
-        </div>
-        <div className="etymology-origin">
-          Ancient Greek <b>πρόγνωσις</b> (<em>prógnōsis</em>), from <b>πρό</b> (<em>pro-</em>, "before") + <b>γνῶσις</b> (<em>gnôsis</em>, "knowledge, to know").
-        </div>
-        <div className="etymology-meaning">
-          <em>noun</em> — Foreknowledge; knowing beforehand; a calculated forecast of future events based on empirical observation and calibrated probability.
-        </div>
-      </div>
-
-      {/* Principle & Artwork */}
-      <div className="instrument-card">
-        <img
-          src="/telescope_future_1200_white.png"
-          alt="Astronomer looking through celestial telescope"
-          className="telescope-figure"
-        />
-        <h2 className="instrument-title">The Habit of Forecasting</h2>
-        <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.45, marginBottom: "0.85rem" }}>
-          Think in probabilities. "Probably" is ambiguous; "80%" is precise. Create a feedback loop by testing your conviction against reality.
-        </p>
-
-        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", fontSize: "0.75rem", color: "var(--accent-brass)" }}>
-          <span>1. Frame Claim</span> • <span>2. Calibrate Odds</span> • <span>3. Seal & Learn</span>
-        </div>
-      </div>
-
-      {/* Live Calibration Instrument */}
+      {/* Live Calibration & Reliability Instrument */}
       <div className="instrument-card instrument-calibration-card">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
           <h2 className="instrument-title" style={{ marginBottom: 0 }}>Reliability Instrument</h2>
