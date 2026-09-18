@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Download, Upload, Sparkles, Database, CheckCircle2, Shield } from "lucide-react";
 import { importBackup, seedDemoData } from "../api";
 import { User } from "../types";
@@ -13,6 +13,14 @@ export const BackupModal: React.FC<BackupModalProps> = ({ currentUser, onClose, 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleExport = () => {
     window.location.href = `/api/export?userId=${encodeURIComponent(currentUser?.id || "")}`;
@@ -30,26 +38,23 @@ export const BackupModal: React.FC<BackupModalProps> = ({ currentUser, onClose, 
 
     try {
       const text = await file.text();
-      const json = JSON.parse(text);
-      await importBackup(json, currentUser?.id);
+      const jsonData = JSON.parse(text);
+      await importBackup(jsonData, currentUser?.id);
       await onRefreshData();
-      setMessage("Data imported successfully!");
+      setMessage("Archive restored successfully!");
       setTimeout(() => {
         setMessage("");
         onClose();
       }, 1500);
     } catch (err: any) {
-      setError(err.message || "Failed to import backup JSON");
+      setError(err.message || "Failed to parse and import backup archive");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSeedDemo = async () => {
-    if (!window.confirm("Load sample predictions? This will populate realistic historical predictions to test the calibration curve.")) {
-      return;
-    }
-
+    if (!confirm("Populate database with calibrated sample predictions?")) return;
     setLoading(true);
     setError("");
     setMessage("");
@@ -71,11 +76,17 @@ export const BackupModal: React.FC<BackupModalProps> = ({ currentUser, onClose, 
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="dialog-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="backup-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Database size={18} style={{ color: "var(--accent-brass)" }} />
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 600 }}>
+            <h2 id="backup-modal-title" style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 600 }}>
               Archival Storage & Backup
             </h2>
             <span

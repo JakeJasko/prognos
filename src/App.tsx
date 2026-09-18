@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Search, Telescope, Sparkles, Globe, Home, UserCheck, Trophy, Tag, Settings, X } from "lucide-react";
 import {
   fetchPredictions,
@@ -189,33 +189,36 @@ export const App: React.FC = () => {
   const allTags = Array.from(new Set(predictions.flatMap((p) => p.tags))).filter(Boolean);
 
   // Filter ledger items
-  const filteredPredictions = predictions.filter((p) => {
-    if (statusFilter === "active" && p.resolved) return false;
-    if (statusFilter === "resolved" && !p.resolved) return false;
-    if (statusFilter === "due") {
-      if (p.resolved) return false;
-      const resolveDate = new Date(p.resolve_by).getTime();
-      const nextWeek = Date.now() + 7 * 24 * 60 * 60 * 1000;
-      if (resolveDate > nextWeek) return false;
-    }
+  const filteredPredictions = useMemo(() => {
+    return predictions.filter((p) => {
+      if (statusFilter === "active" && p.resolved) return false;
+      if (statusFilter === "resolved" && !p.resolved) return false;
+      if (statusFilter === "due") {
+        if (p.resolved) return false;
+        const resolveDate = new Date(p.resolve_by).getTime();
+        const nextWeek = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        if (resolveDate > nextWeek) return false;
+      }
 
-    if (selectedTag && !p.tags.includes(selectedTag)) return false;
+      if (selectedTag && !p.tags.includes(selectedTag)) return false;
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = p.title.toLowerCase().includes(q);
-      const matchNotes = p.notes?.toLowerCase().includes(q);
-      if (!matchTitle && !matchNotes) return false;
-    }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = p.title.toLowerCase().includes(q);
+        const matchNotes = p.notes?.toLowerCase().includes(q);
+        if (!matchTitle && !matchNotes) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }, [predictions, statusFilter, selectedTag, searchQuery]);
 
   const activeCount = predictions.filter((p) => !p.resolved).length;
   const resolvedCount = predictions.filter((p) => p.resolved).length;
 
   return (
     <div className="app-shell">
+      <h1 className="sr-only">Prognos Observatory — Personal & Household Forecasting Ledger</h1>
       {/* Observatory Header */}
       <Navbar
         currentUser={currentUser}
@@ -382,6 +385,7 @@ export const App: React.FC = () => {
                     placeholder="Filter claims..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Filter claims by keyword"
                   />
                   {searchQuery && (
                     <button
@@ -468,6 +472,14 @@ export const App: React.FC = () => {
           onLoginSuccess={handleLoginSuccess}
           onLogout={handleLogout}
           onClose={() => setIsProfileOpen(false)}
+          onOpenAdminModal={() => {
+            setIsProfileOpen(false);
+            setIsAdminOpen(true);
+          }}
+          onOpenBackupModal={() => {
+            setIsProfileOpen(false);
+            setIsBackupOpen(true);
+          }}
         />
       )}
 

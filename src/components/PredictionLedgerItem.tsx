@@ -49,12 +49,18 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
     timeText = `Overdue by ${Math.abs(diffDays)}d (${resolveDate.toLocaleDateString()})`;
   }
 
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationText, setCelebrationText] = useState("Outcome Sealed into the Cosmos!");
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await onUpdateForecast(prediction.id, newProb / 100, updateComment.trim() || undefined);
       setUpdateComment("");
+      setCelebrationText("Starlight Forecast Recorded! ✨");
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 2000);
     } finally {
       setLoading(false);
     }
@@ -66,6 +72,9 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
     try {
       await onResolve(prediction.id, resolvingChoice, resolutionRetrospect.trim() || undefined);
       setResolvingChoice(null);
+      setCelebrationText("Outcome Sealed into the Cosmos! 🌌");
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 2400);
     } finally {
       setLoading(false);
     }
@@ -80,11 +89,31 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
     : "";
 
   return (
-    <div className={`ledger-item ${prediction.resolved ? "is-resolved" : ""}`}>
+    <div className={`ledger-item ${prediction.resolved ? "is-resolved" : ""}`} style={{ position: "relative" }}>
+      {showCelebration && (
+        <div className="celestial-celebration" aria-live="polite">
+          <span className="star-burst s1">✨</span>
+          <span className="star-burst s2">🌟</span>
+          <span className="star-burst s3">💫</span>
+          <span className="star-burst s4">🌠</span>
+          <span className="star-burst s5">🔭</span>
+          <span className="celebration-label">{celebrationText}</span>
+        </div>
+      )}
       {/* Header Row */}
       <div
         className="ledger-item-header"
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        aria-label={`${prediction.title} — ${isExpanded ? "Collapse prediction details" : "Expand prediction details"}`}
         onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
         style={{ cursor: "pointer" }}
       >
         <div className="item-main">
@@ -195,42 +224,102 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
         </div>
       </div>
 
-      {/* User's Own Quick Status Strip (if active & not expanded) */}
+      {/* Interactive Quick-Forecast & Odds Bar */}
       {!isExpanded && !prediction.resolved && currentUser && (
-        <div style={{
-          padding: "0.35rem 1.25rem",
-          background: userProbPercent !== null ? "rgba(245, 208, 97, 0.03)" : "rgba(45, 212, 191, 0.03)",
-          borderTop: "1px dashed var(--border-dim)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontSize: "0.75rem"
-        }}>
-          <div>
-            {userProbPercent !== null ? (
-              <span style={{ color: "var(--text-secondary)" }}>
-                Your estimate: <b style={{ color: "var(--accent-brass)" }}>{userProbPercent}%</b>
+        <div className="ledger-quick-strip">
+          {userProbPercent !== null ? (
+            <div className="quick-strip-inner">
+              <div className="quick-user-odds">
+                <span className="user-odds-label">Your Odds:</span>
+                <span className="user-odds-val">{userProbPercent}%</span>
                 {userProbPercent !== consensusPercent && (
-                  <span style={{ opacity: 0.75, marginLeft: "0.3rem" }}>
-                    ({userProbPercent > consensusPercent ? `+${userProbPercent - consensusPercent}%` : `${userProbPercent - consensusPercent}%`} vs consensus)
+                  <span className="user-odds-delta" title="Difference from consensus">
+                    {userProbPercent > consensusPercent ? `+${userProbPercent - consensusPercent}%` : `${userProbPercent - consensusPercent}%`} vs pool
                   </span>
                 )}
+              </div>
+              <div className="quick-strip-actions">
+                <button
+                  type="button"
+                  className="quick-tweak-btn"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const next = Math.max(1, userProbPercent - 5);
+                    await onUpdateForecast(prediction.id, next / 100);
+                    setCelebrationText(`Updated to ${next}% ✨`);
+                    setShowCelebration(true);
+                    setTimeout(() => setShowCelebration(false), 1800);
+                  }}
+                  title="Lower your estimate by 5%"
+                >
+                  -5%
+                </button>
+                <button
+                  type="button"
+                  className="quick-tweak-btn"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const next = Math.min(99, userProbPercent + 5);
+                    await onUpdateForecast(prediction.id, next / 100);
+                    setCelebrationText(`Updated to ${next}% ✨`);
+                    setShowCelebration(true);
+                    setTimeout(() => setShowCelebration(false), 1800);
+                  }}
+                  title="Increase your estimate by 5%"
+                >
+                  +5%
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(true);
+                  }}
+                  style={{ fontSize: "0.72rem", padding: "0.2rem 0.5rem" }}
+                >
+                  Details
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="quick-strip-inner">
+              <span className="quick-cast-prompt">
+                <Sparkles size={12} style={{ color: "var(--accent-brass)" }} />
+                <span>Cast your odds:</span>
               </span>
-            ) : (
-              <span style={{ color: "var(--mark-yes)", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                <Sparkles size={11} /> Open claim — submit your probability to compete on the leaderboard!
-              </span>
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => setIsExpanded(true)}
-            style={{ fontSize: "0.72rem", padding: "0.15rem 0.45rem", color: "var(--text-primary)" }}
-          >
-            {userProbPercent !== null ? "Revise Forecast" : "Add Forecast"}
-          </button>
+              <div className="quick-cast-chips">
+                {[15, 35, 50, 75, 90].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    className="quick-cast-btn"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await onUpdateForecast(prediction.id, val / 100);
+                      setCelebrationText(`Forecast Logged: ${val}% ✨`);
+                      setShowCelebration(true);
+                      setTimeout(() => setShowCelebration(false), 2200);
+                    }}
+                    title={`Instantly cast ${val}% probability`}
+                  >
+                    {val}%
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="quick-cast-custom-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(true);
+                  }}
+                  title="Open slider for custom probability"
+                >
+                  Custom...
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

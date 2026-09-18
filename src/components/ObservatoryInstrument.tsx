@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, Sparkles } from "lucide-react";
 import { Stats, User } from "../types";
 import { CalibrationChart } from "./CalibrationChart";
 
@@ -13,6 +13,15 @@ export const ObservatoryInstrument: React.FC<ObservatoryInstrumentProps> = ({
   stats,
   currentUser,
 }) => {
+  const getPersona = () => {
+    if (!stats || stats.scoredCount === 0) return { title: "Novice Stargazer 🔭", desc: "Your journey starts with your first resolved claim." };
+    if (stats.scoredCount < 4) return { title: "Apprentice Astrologer 🌟", desc: "Gathering empirical signal from the cosmic noise." };
+    if (stats.brierScore !== null && stats.brierScore <= 0.15) return { title: "Grand Superforecaster 👑", desc: "Remarkable accuracy! True probabilistic discipline." };
+    if (stats.brierScore !== null && stats.brierScore <= 0.22) return { title: "Calibrated Oracle 🔮", desc: "Well-tuned calibration across uncertain events." };
+    return { title: "Daring Speculator 🌠", desc: "Bold forecasts navigating the frontiers of probability." };
+  };
+
+  const persona = getPersona();
   return (
     <aside className="instrument-column">
       {/* Live Calibration & Reliability Instrument */}
@@ -69,6 +78,28 @@ export const ObservatoryInstrument: React.FC<ObservatoryInstrumentProps> = ({
 
           <div style={{ color: "var(--text-muted)" }}>
             Win: <b>{stats?.accuracyRate !== null && stats?.accuracyRate !== undefined ? `${stats.accuracyRate}%` : "—"}</b>
+          </div>
+        </div>
+
+        {/* Astronomer Persona Starlight Card */}
+        <div style={{
+          marginTop: "0.85rem",
+          padding: "0.65rem 0.8rem",
+          background: "rgba(245, 208, 97, 0.05)",
+          border: "1px solid var(--border-brass)",
+          borderRadius: "var(--radius-sm)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "0.5rem"
+        }}>
+          <Sparkles size={14} style={{ color: "var(--accent-brass)", marginTop: "2px", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--accent-brass)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              {persona.title}
+            </div>
+            <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)", marginTop: "0.15rem", lineHeight: 1.35 }}>
+              {persona.desc}
+            </div>
           </div>
         </div>
       </div>

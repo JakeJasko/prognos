@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Telescope, X, Check, Compass, Award, Target } from "lucide-react";
 
 interface AboutModalProps {
@@ -11,35 +11,33 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
     onClose();
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleDismiss();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div className="dialog-overlay" onClick={handleDismiss}>
       <div 
         className="dialog-box" 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="about-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: "560px", padding: "1.75rem" }}
       >
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div 
-              style={{ 
-                background: "rgba(245, 208, 97, 0.12)", 
-                border: "1px solid var(--border-brass)",
-                borderRadius: "var(--radius-xs)",
-                padding: "0.35rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--accent-brass)"
-              }}
-            >
-              <Telescope size={18} />
-            </div>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", fontWeight: 600, letterSpacing: "-0.01em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <Telescope size={22} style={{ color: "var(--accent-brass)" }} />
+            <h2 id="about-modal-title" style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", fontWeight: 600, letterSpacing: "-0.01em", margin: 0 }}>
               About Prognos
             </h2>
           </div>
-          <button className="btn-ghost" onClick={handleDismiss} title="Close dialog">
+          <button className="btn-ghost" onClick={handleDismiss} title="Close dialog" aria-label="Close dialog">
             <X size={18} />
           </button>
         </div>

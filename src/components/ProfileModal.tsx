@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, LogOut, ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
+import { X, LogOut, ShieldCheck, Sparkles, AlertCircle, Shield, Database } from "lucide-react";
 import { User } from "../types";
 import { fetchGoogleConfig, verifyGoogleCredential } from "../api";
 
@@ -8,6 +8,8 @@ interface ProfileModalProps {
   onLoginSuccess: (user: User) => void;
   onLogout: () => void;
   onClose: () => void;
+  onOpenAdminModal?: () => void;
+  onOpenBackupModal?: () => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -15,6 +17,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onLoginSuccess,
   onLogout,
   onClose,
+  onOpenAdminModal,
+  onOpenBackupModal,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -78,9 +82,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       });
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "440px" }}>
+      <div
+        className="dialog-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-modal-title"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "440px" }}
+      >
         {/* Modal Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -90,11 +109,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
             </svg>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 500, margin: 0 }}>
+            <h2 id="profile-modal-title" style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 500, margin: 0 }}>
               {currentUser ? "Google Account" : "Google Sign-In"}
             </h2>
           </div>
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="btn-ghost" onClick={onClose} title="Close dialog" aria-label="Close dialog">
             <X size={18} />
           </button>
         </div>
@@ -172,6 +191,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   >
                     <ShieldCheck size={16} />
                   </span>
+                  {currentUser.isAdmin && (
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        padding: "0.1rem 0.4rem",
+                        borderRadius: "4px",
+                        background: "rgba(245, 208, 97, 0.2)",
+                        color: "var(--accent-brass)",
+                        fontWeight: 700,
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      ADMIN
+                    </span>
+                  )}
                 </div>
 
                 <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -183,6 +217,79 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {currentUser.isAdmin && (
+              <div
+                style={{
+                  marginBottom: "1.25rem",
+                  padding: "0.85rem 1rem",
+                  background: "rgba(245, 208, 97, 0.06)",
+                  border: "1px solid var(--border-brass)",
+                  borderRadius: "var(--radius-sm)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: "var(--accent-brass)",
+                    marginBottom: "0.6rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                  }}
+                >
+                  <Shield size={14} />
+                  Observatory Administration
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {onOpenAdminModal && (
+                    <button
+                      type="button"
+                      className="btn-brass"
+                      onClick={() => {
+                        onClose();
+                        onOpenAdminModal();
+                      }}
+                      style={{
+                        padding: "0.4rem 0.85rem",
+                        fontSize: "0.8rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Shield size={14} />
+                      <span>Admin Console</span>
+                    </button>
+                  )}
+                  {onOpenBackupModal && (
+                    <button
+                      type="button"
+                      className="btn-subtle"
+                      onClick={() => {
+                        onClose();
+                        onOpenBackupModal();
+                      }}
+                      style={{
+                        padding: "0.4rem 0.85rem",
+                        fontSize: "0.8rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Database size={14} style={{ color: "var(--accent-brass)" }} />
+                      <span>Archival & Backups</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
               <button

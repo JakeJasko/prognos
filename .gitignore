@@ -9,3 +9,5 @@ Thumbs.db
 scratch/
 *.log
 *.tar.gz
+test-results/
+playwright-report/

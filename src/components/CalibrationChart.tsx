@@ -34,6 +34,8 @@ export const CalibrationChart: React.FC<CalibrationChartProps> = ({ buckets }) =
       <svg
         viewBox={`0 0 ${size} ${size}`}
         className="precision-chart-svg"
+        role="img"
+        aria-label="Observer calibration plot showing empirical outcome rate versus forecasted probability"
       >
         {/* Subtle Grid */}
         {ticks.map((t) => {
@@ -46,7 +48,7 @@ export const CalibrationChart: React.FC<CalibrationChartProps> = ({ buckets }) =
                 y1={y}
                 x2={size - pad}
                 y2={y}
-                stroke="rgba(255, 255, 255, 0.06)"
+                stroke="var(--border-dim)"
                 strokeWidth="1"
               />
               <line
@@ -54,7 +56,7 @@ export const CalibrationChart: React.FC<CalibrationChartProps> = ({ buckets }) =
                 y1={pad}
                 x2={x}
                 y2={size - pad}
-                stroke="rgba(255, 255, 255, 0.06)"
+                stroke="var(--border-dim)"
                 strokeWidth="1"
               />
               <text
@@ -98,7 +100,7 @@ export const CalibrationChart: React.FC<CalibrationChartProps> = ({ buckets }) =
           <path
             d={pathD}
             fill="none"
-            stroke="#f8fafc"
+            stroke="var(--text-primary)"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -122,8 +124,8 @@ export const CalibrationChart: React.FC<CalibrationChartProps> = ({ buckets }) =
                 cx={cx}
                 cy={cy}
                 r={isHov ? 9 : 5}
-                fill={isHov ? "var(--accent-brass)" : "#f8fafc"}
-                stroke="#090c14"
+                fill={isHov ? "var(--accent-brass)" : "var(--text-primary)"}
+                stroke="var(--bg-surface)"
                 strokeWidth="2"
               />
             </g>

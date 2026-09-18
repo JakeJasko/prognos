@@ -240,10 +240,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       (p.creator_name && p.creator_name.toLowerCase().includes(claimSearch.toLowerCase()))
   );
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div
         className="dialog-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: "880px",
@@ -257,23 +268,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            <div
-              style={{
-                background: "rgba(245, 208, 97, 0.12)",
-                border: "1px solid var(--border-brass)",
-                borderRadius: "var(--radius-xs)",
-                padding: "0.35rem",
-                color: "var(--accent-brass)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <Shield size={18} />
-            </div>
+            <Shield size={22} style={{ color: "var(--accent-brass)" }} />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
+                <h2 id="admin-modal-title" style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
                   Observatory Administrator Console
                 </h2>
                 <span

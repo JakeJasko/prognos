@@ -34,9 +34,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
   }, [period, selectedYear]);
 
   const getRankBadge = (rank: number) => {
-    if (rank === 1) return <span style={{ color: "#F5D061", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Trophy size={15} /> 1st</span>;
-    if (rank === 2) return <span style={{ color: "#E2E8F0", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Medal size={15} /> 2nd</span>;
-    if (rank === 3) return <span style={{ color: "#D97706", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Medal size={15} /> 3rd</span>;
+    if (rank === 1) return <span style={{ color: "var(--accent-brass)", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Trophy size={15} /> 1st</span>;
+    if (rank === 2) return <span style={{ color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Medal size={15} /> 2nd</span>;
+    if (rank === 3) return <span style={{ color: "#d97706", display: "inline-flex", alignItems: "center", gap: "0.2rem", fontWeight: 700 }}><Medal size={15} /> 3rd</span>;
     return <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>#{rank}</span>;
   };
 
@@ -68,24 +68,37 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
 
         {/* Period Switcher */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div className="filter-pills" style={{ background: "var(--bg-input)", padding: "0.2rem", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center" }}>
+          <div className="desktop-nav-tabs" style={{ margin: 0 }}>
             <div style={{ display: "inline-flex", alignItems: "center" }}>
               <button
                 type="button"
-                className={`filter-pill ${period === "year" ? "active" : ""}`}
+                className={`nav-tab-btn ${period === "year" ? "active" : ""}`}
                 onClick={() => setPeriod("year")}
-                style={{ fontSize: "0.8rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
               >
                 <span>📅 {selectedYear}</span>
               </button>
               
               {period === "year" && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "1px", paddingRight: "0.35rem" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", paddingRight: "0.25rem" }}>
                   <button
                     type="button"
                     onClick={() => setSelectedYear((y) => y - 1)}
                     title="Previous year"
-                    style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 3px", fontSize: "0.75rem", lineHeight: 1 }}
+                    aria-label="Previous year"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--text-muted)",
+                      cursor: "pointer",
+                      padding: "0.35rem 0.45rem",
+                      minWidth: "26px",
+                      minHeight: "26px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      lineHeight: 1
+                    }}
                   >
                     ◀
                   </button>
@@ -94,7 +107,21 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
                       type="button"
                       onClick={() => setSelectedYear((y) => y + 1)}
                       title="Next year"
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 3px", fontSize: "0.75rem", lineHeight: 1 }}
+                      aria-label="Next year"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                        padding: "0.35rem 0.45rem",
+                        minWidth: "26px",
+                        minHeight: "26px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.75rem",
+                        lineHeight: 1
+                      }}
                     >
                       ▶
                     </button>
@@ -105,9 +132,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
 
             <button
               type="button"
-              className={`filter-pill ${period === "all" ? "active" : ""}`}
+              className={`nav-tab-btn ${period === "all" ? "active" : ""}`}
               onClick={() => setPeriod("all")}
-              style={{ fontSize: "0.8rem", padding: "0.35rem 0.85rem" }}
             >
               🌌 All Time
             </button>
@@ -233,7 +259,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
         overflow: "hidden"
       }}>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+          <table
+            style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}
+            aria-label="Observer Forecast Accuracy Leaderboard"
+          >
             <thead>
               <tr style={{ background: "var(--bg-input)", borderBottom: "1px solid var(--border-medium)", color: "var(--text-muted)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 <th style={{ padding: "0.85rem 1rem", width: "70px" }}>Rank</th>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle, Shield } from "lucide-react";
+import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle } from "lucide-react";
 import { Household, User } from "../types";
 
 interface NavbarProps {
@@ -48,7 +48,20 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="observatory-header">
       <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
         {/* Brand Emblem */}
-        <div className="brand-emblem" onClick={() => onTabChange("observatory")} style={{ cursor: "pointer" }}>
+        <div
+          className="brand-emblem"
+          role="button"
+          tabIndex={0}
+          aria-label="Prognos Observatory Home"
+          onClick={() => onTabChange("observatory")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onTabChange("observatory");
+            }
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <div className="brand-symbol">
             <Telescope size={20} />
           </div>
@@ -59,12 +72,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop View Tabs */}
-        <nav className="desktop-nav-tabs" style={{ alignItems: "center", gap: "0.25rem" }}>
+        <nav className="desktop-nav-tabs" aria-label="Main Navigation">
           <button
             type="button"
-            className={`filter-pill ${activeTab === "observatory" ? "active" : ""}`}
+            className={`nav-tab-btn ${activeTab === "observatory" ? "active" : ""}`}
             onClick={() => onTabChange("observatory")}
-            style={{ fontSize: "0.82rem", padding: "0.35rem 0.85rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            aria-current={activeTab === "observatory" ? "page" : undefined}
           >
             <Telescope size={14} />
             <span>Ledger</span>
@@ -72,9 +85,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             type="button"
-            className={`filter-pill ${activeTab === "leaderboard" ? "active" : ""}`}
+            className={`nav-tab-btn ${activeTab === "leaderboard" ? "active" : ""}`}
             onClick={() => onTabChange("leaderboard")}
-            style={{ fontSize: "0.82rem", padding: "0.35rem 0.85rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            aria-current={activeTab === "leaderboard" ? "page" : undefined}
           >
             <Trophy size={14} />
             <span>Leaderboard</span>
@@ -114,28 +127,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </button>
 
-        {/* Admin Console Trigger (Only visible to Administrators) */}
-        {currentUser?.isAdmin && onOpenAdminModal && (
-          <button
-            className="btn-subtle nav-admin-btn"
-            onClick={onOpenAdminModal}
-            title="Observatory Administration Console (Manage Users, Circles, Forecasts)"
-            style={{
-              padding: "0.4rem 0.65rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              background: "rgba(245, 208, 97, 0.12)",
-              borderColor: "var(--border-brass)",
-            }}
-          >
-            <Shield size={14} style={{ color: "var(--accent-brass)" }} />
-            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--accent-brass)", letterSpacing: "0.04em" }}>
-              ADMIN
-            </span>
-          </button>
-        )}
-
         {/* Theme Mode Switcher */}
         <button
           className="btn-subtle theme-toggle-btn"
@@ -167,11 +158,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <span style={{ fontSize: "1.05rem" }}>{currentUser.avatar || "🔭"}</span>
             )}
-            <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span className="observer-name" style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {currentUser.name}
             </span>
             {currentUser.isAdmin && (
               <span 
+                className="desktop-only"
                 style={{ 
                   fontSize: "0.62rem", 
                   padding: "0.1rem 0.35rem", 
@@ -206,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Archival Storage & Backup (STRICTLY ADMIN ONLY) */}
         {currentUser?.isAdmin && (
           <button
-            className="btn-subtle"
+            className="btn-subtle desktop-only"
             onClick={onOpenBackupModal}
             title="Archival Storage, Database Exports & Seeding (Administrator Only)"
             style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center" }}

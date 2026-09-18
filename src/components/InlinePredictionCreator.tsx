@@ -56,20 +56,20 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
   }, [activeHousehold, households]);
 
   const getOddsTranslation = (p: number) => {
-    if (p === 50) return "Toss-up (1 to 1 odds • 50/50)";
+    if (p === 50) return "Quantum Coin Flip 🪙 (1 to 1 odds • 50/50)";
     if (p > 50) {
-      if (p >= 98) return "Virtually certain (99 in 100 fluke)";
-      if (p >= 95) return "High conviction (19 in 20 chance)";
-      if (p >= 90) return "Overwhelming favorite (9 in 10 chance)";
-      if (p >= 80) return "Strong favorite (4 in 5 chance)";
-      if (p >= 70) return "Clear favorite (7 in 10 chance)";
-      return "Slight lean (3 in 5 chance)";
+      if (p >= 98) return "Cosmic Certainty 🌌 (99 in 100 fluke)";
+      if (p >= 95) return "High Conviction Telescope 🔭 (19 in 20 chance)";
+      if (p >= 90) return "Overwhelming Stellar Tide 🌊 (9 in 10 chance)";
+      if (p >= 80) return "Strong Probability 🌟 (4 in 5 chance)";
+      if (p >= 70) return "Clear Favorite 🌕 (7 in 10 chance)";
+      return "Leaning Likely 🌖 (3 in 5 chance)";
     } else {
-      if (p <= 5) return "Extremely remote (1 in 20+ longshot)";
-      if (p <= 15) return "Heavy underdog (1 in 10 chance)";
-      if (p <= 25) return "Unlikely (1 in 4 chance)";
-      if (p <= 35) return "Slight underdog (1 in 3 chance)";
-      return "Leaning against (2 in 5 chance)";
+      if (p <= 5) return "Miracle from the Void ✨ (1 in 20+ longshot)";
+      if (p <= 15) return "Long Shot Comet ☄️ (1 in 10 chance)";
+      if (p <= 25) return "Underdog Claim 🌑 (1 in 4 chance)";
+      if (p <= 35) return "Skeptical Stargazer 🌘 (1 in 3 chance)";
+      return "Leaning Against 🌗 (2 in 5 chance)";
     }
   };
 
@@ -83,6 +83,29 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
     const d = new Date();
     d.setMonth(11, 31);
     setResolveBy(d.toISOString().slice(0, 10));
+  };
+
+  const INSPIRATION_PROMPTS = [
+    { title: "SpaceX successfully catches Starship Super Heavy booster on first try", days: 90, prob: 80, tags: "Space,Aerospace" },
+    { title: "Frontier LLM solves a novel Millennium Prize math problem before 2027", days: 280, prob: 35, tags: "AI,Science" },
+    { title: "James Webb Space Telescope detects definitive biosignature on an exoplanet", days: 365, prob: 25, tags: "Astronomy,Discovery" },
+    { title: "Commercial robotaxis operate in 10+ major US cities without safety drivers", days: 180, prob: 75, tags: "Tech,Autonomy" },
+    { title: "Commercial supersonic passenger flights resume scheduled service by 2029", days: 730, prob: 50, tags: "Aviation,Engineering" },
+    { title: "Human astronauts land on the lunar south pole with Artemis III", days: 450, prob: 65, tags: "Space,NASA" },
+    { title: "A production humanoid robot completes a full manufacturing shift in automotive plant", days: 160, prob: 70, tags: "Robotics,AI" },
+    { title: "I read at least 15 non-fiction books before the end of the year", days: 105, prob: 75, tags: "Personal,Habits" },
+    { title: "Our household completes a 1-week digital detox campout this quarter", days: 60, prob: 85, tags: "Household,Wellbeing" },
+    { title: "Global solar and wind generation exceeds 35% of total worldwide electricity", days: 320, prob: 60, tags: "Energy,Climate" },
+  ];
+
+  const handleSparkIdea = () => {
+    const randomPrompt = INSPIRATION_PROMPTS[Math.floor(Math.random() * INSPIRATION_PROMPTS.length)];
+    setTitle(randomPrompt.title);
+    setProb(randomPrompt.prob);
+    setDateOffset(randomPrompt.days);
+    if (randomPrompt.tags) {
+      setTags(randomPrompt.tags);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,17 +195,28 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
             <Sparkles size={13} />
             <span>New Observation & Probability</span>
           </div>
-          {onClose && (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <button
               type="button"
-              className="creator-close-btn"
-              onClick={onClose}
-              title="Dismiss"
-              aria-label="Close prediction form"
+              className="spark-idea-btn"
+              onClick={handleSparkIdea}
+              title="Roll cosmic dice for an intriguing hypothesis"
             >
-              <X size={16} />
+              <Sparkles size={11} />
+              <span>Spark Idea 🎲</span>
             </button>
-          )}
+            {onClose && (
+              <button
+                type="button"
+                className="creator-close-btn"
+                onClick={onClose}
+                title="Dismiss"
+                aria-label="Close prediction form"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Scope / Visibility Switcher */}
@@ -281,6 +315,7 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
           placeholder={visibility === "PUBLIC" ? "What public event do you predict? (e.g. Artemis II launches by Oct 2026)" : "What household prediction do you want to record? (e.g. Kitchen remodel finishes under budget)"}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          aria-label={visibility === "PUBLIC" ? "Public prediction claim or question" : "Household prediction claim or question"}
           required
         />
 
@@ -298,6 +333,10 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
             value={prob}
             onChange={(e) => setProb(Number(e.target.value))}
             className="scrubber-range"
+            aria-label="Estimated probability percentage"
+            aria-valuenow={prob}
+            aria-valuemin={1}
+            aria-valuemax={99}
           />
 
           <div className="scrubber-ticks">
@@ -307,6 +346,7 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
                 type="button"
                 className={`scrubber-tick ${prob === val ? "active" : ""}`}
                 onClick={() => setProb(val)}
+                aria-label={`Set probability to ${val}%`}
               >
                 {val}%
               </button>
@@ -317,20 +357,25 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
         {/* Date Presets & Details Toggle */}
         <div className="creator-bottom">
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+            <label
+              htmlFor="creator-resolve-by-input"
+              style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.25rem", cursor: "pointer" }}
+            >
               <Calendar size={13} /> Target:
-            </span>
+            </label>
             <input
+              id="creator-resolve-by-input"
               type="date"
               value={resolveBy}
               onChange={(e) => setResolveBy(e.target.value)}
               className="creator-date-input"
+              aria-label="Target resolution date"
             />
             <div className="quick-chips">
-              <button type="button" className="chip-btn" onClick={() => setDateOffset(7)}>+1w</button>
-              <button type="button" className="chip-btn" onClick={() => setDateOffset(30)}>+1m</button>
-              <button type="button" className="chip-btn" onClick={() => setDateOffset(90)}>+3m</button>
-              <button type="button" className="chip-btn" onClick={setEndOfYear}>Year-End</button>
+              <button type="button" className="chip-btn" onClick={() => setDateOffset(7)} aria-label="Add 1 week to target date">+1w</button>
+              <button type="button" className="chip-btn" onClick={() => setDateOffset(30)} aria-label="Add 1 month to target date">+1m</button>
+              <button type="button" className="chip-btn" onClick={() => setDateOffset(90)} aria-label="Add 3 months to target date">+3m</button>
+              <button type="button" className="chip-btn" onClick={setEndOfYear} aria-label="Set target date to end of current year">Year-End</button>
             </div>
           </div>
 

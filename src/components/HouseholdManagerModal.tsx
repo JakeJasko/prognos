@@ -128,47 +128,62 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
+      <div
+        className="dialog-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="household-modal-title"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "560px" }}
+      >
         {/* Modal Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Home size={20} style={{ color: "var(--accent-brass)" }} />
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", margin: 0 }}>
+            <h2 id="household-modal-title" style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", margin: 0 }}>
               Household & Private Circles
             </h2>
           </div>
-          <button type="button" className="btn-ghost" onClick={onClose} style={{ padding: "0.3rem" }}>
+          <button type="button" className="btn-ghost" onClick={onClose} style={{ padding: "0.3rem" }} title="Close dialog" aria-label="Close dialog">
             <X size={18} />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="filter-pills" style={{ marginBottom: "1.25rem", width: "100%", display: "flex" }}>
+        <div className="desktop-nav-tabs" style={{ marginBottom: "1.25rem", width: "100%", display: "flex", margin: "0 0 1.25rem 0" }}>
           <button
             type="button"
-            className={`filter-pill ${activeTab === "switch" ? "active" : ""}`}
+            className={`nav-tab-btn ${activeTab === "switch" ? "active" : ""}`}
             onClick={() => { setActiveTab("switch"); setError(""); setSuccessMsg(""); }}
-            style={{ flex: 1, textAlign: "center" }}
+            style={{ flex: 1, justifyContent: "center" }}
           >
             My Circles ({households.length})
           </button>
           <button
             type="button"
-            className={`filter-pill ${activeTab === "join" ? "active" : ""}`}
+            className={`nav-tab-btn ${activeTab === "join" ? "active" : ""}`}
             onClick={() => { setActiveTab("join"); setError(""); setSuccessMsg(""); }}
-            style={{ flex: 1, textAlign: "center" }}
+            style={{ flex: 1, justifyContent: "center" }}
           >
-            Join by Code
+            Join Circle
           </button>
           <button
             type="button"
-            className={`filter-pill ${activeTab === "create" ? "active" : ""}`}
+            className={`nav-tab-btn ${activeTab === "create" ? "active" : ""}`}
             onClick={() => { setActiveTab("create"); setError(""); setSuccessMsg(""); }}
-            style={{ flex: 1, textAlign: "center" }}
+            style={{ flex: 1, justifyContent: "center" }}
           >
-            Create Circle
+            Create New Circle
           </button>
         </div>
 
