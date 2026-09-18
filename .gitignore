@@ -1,0 +1,11 @@
+node_modules
+dist
+data/*.db*
+data/*.sqlite*
+.env
+.env.local
+.DS_Store
+Thumbs.db
+scratch/
+*.log
+*.tar.gz
