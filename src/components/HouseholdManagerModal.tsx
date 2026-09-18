@@ -160,10 +160,10 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
         </div>
 
         {/* Tab Switcher */}
-        <div className="desktop-nav-tabs" style={{ marginBottom: "1.25rem", width: "100%", display: "flex", margin: "0 0 1.25rem 0" }}>
+        <div className="segmented-control" style={{ marginBottom: "1.25rem", width: "100%", display: "flex", margin: "0 0 1.25rem 0" }}>
           <button
             type="button"
-            className={`nav-tab-btn ${activeTab === "switch" ? "active" : ""}`}
+            className={`segmented-tab-btn ${activeTab === "switch" ? "active" : ""}`}
             onClick={() => { setActiveTab("switch"); setError(""); setSuccessMsg(""); }}
             style={{ flex: 1, justifyContent: "center" }}
           >
@@ -171,7 +171,7 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
           </button>
           <button
             type="button"
-            className={`nav-tab-btn ${activeTab === "join" ? "active" : ""}`}
+            className={`segmented-tab-btn ${activeTab === "join" ? "active" : ""}`}
             onClick={() => { setActiveTab("join"); setError(""); setSuccessMsg(""); }}
             style={{ flex: 1, justifyContent: "center" }}
           >
@@ -179,7 +179,7 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
           </button>
           <button
             type="button"
-            className={`nav-tab-btn ${activeTab === "create" ? "active" : ""}`}
+            className={`segmented-tab-btn ${activeTab === "create" ? "active" : ""}`}
             onClick={() => { setActiveTab("create"); setError(""); setSuccessMsg(""); }}
             style={{ flex: 1, justifyContent: "center" }}
           >

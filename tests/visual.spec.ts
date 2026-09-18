@@ -45,6 +45,47 @@ test.describe("Prognos Visual & Functional Suite", () => {
     // Switch to Leaderboard
     await leaderboardBtn.click();
     await expect(page.locator("h2", { hasText: "Forecasting Leaderboard" })).toBeVisible();
+
+    // Verify segmented control and buttons are visible
+    const segmentedControl = page.locator(".segmented-control").first();
+    await expect(segmentedControl).toBeVisible();
+
+    // Verify left arrow is positioned on the left side of the year text
+    const prevYearBtn = segmentedControl.locator("button.year-stepper-btn").first();
+    await expect(prevYearBtn).toBeVisible();
+    await expect(prevYearBtn).toHaveText("◀");
+
+    const yearText = segmentedControl.locator(".year-display");
+    await expect(yearText).toBeVisible();
+    await expect(yearText).toHaveText("2026");
+
+    const prevBox = await prevYearBtn.boundingBox();
+    const textBox = await yearText.boundingBox();
+    expect(prevBox).not.toBeNull();
+    expect(textBox).not.toBeNull();
+    if (prevBox && textBox) {
+      expect(prevBox.x).toBeLessThan(textBox.x);
+    }
+
+    // Step back to 2025 and verify next arrow ▶ appears on the right
+    await prevYearBtn.click();
+    await expect(segmentedControl.locator(".year-display")).toHaveText("2025");
+    const nextYearBtn = segmentedControl.locator("button.year-stepper-btn", { hasText: "▶" });
+    await expect(nextYearBtn).toBeVisible();
+    const nextBox = await nextYearBtn.boundingBox();
+    const text2025Box = await segmentedControl.locator(".year-display").boundingBox();
+    if (nextBox && text2025Box) {
+      expect(nextBox.x).toBeGreaterThan(text2025Box.x);
+    }
+
+    // Step back to 2026
+    await nextYearBtn.click();
+    await expect(segmentedControl.locator(".year-display")).toHaveText("2026");
+
+    // Verify All Time tab
+    const allTimeBtn = segmentedControl.locator("button", { hasText: "All Time" });
+    await expect(allTimeBtn).toBeVisible();
+
     await page.screenshot({
       path: path.join(ARTIFACTS_DIR, "headless_desktop_leaderboard.png"),
       fullPage: false,
@@ -101,6 +142,52 @@ test.describe("Prognos Visual & Functional Suite", () => {
     await predictBtn.click();
     await page.waitForTimeout(300);
     await expect(creatorWrapper).toBeHidden();
+
+    // Tap the 'Ranks' (Leaderboard) button on mobile bottom nav
+    const mobileLeaderboardBtn = page.locator(".mobile-bottom-nav button", { hasText: /Ranks|Leaderboard/i });
+    await mobileLeaderboardBtn.click();
+    await page.waitForTimeout(400);
+
+    // Verify Forecasting Leaderboard is visible
+    await expect(page.locator("h2", { hasText: "Forecasting Leaderboard" })).toBeVisible();
+
+    // Verify segmented control is VISIBLE on mobile (was previously hidden by .desktop-nav-tabs)
+    const mobileSegmentedControl = page.locator(".segmented-control").first();
+    await expect(mobileSegmentedControl).toBeVisible();
+
+    // Verify Year and All Time buttons are visible on mobile
+    const mobileYearTab = mobileSegmentedControl.locator(".segmented-tab-btn").first();
+    await expect(mobileYearTab).toBeVisible();
+    const mobileYearText = mobileSegmentedControl.locator(".year-display");
+    await expect(mobileYearText).toBeVisible();
+    await expect(mobileYearText).toHaveText("2026");
+
+    const mobilePrevYearBtn = mobileSegmentedControl.locator("button.year-stepper-btn").first();
+    await expect(mobilePrevYearBtn).toBeVisible();
+    await expect(mobilePrevYearBtn).toHaveText("◀");
+
+    // Verify left arrow is on the left of the year text
+    const mPrevBox = await mobilePrevYearBtn.boundingBox();
+    const mTextBox = await mobileYearText.boundingBox();
+    expect(mPrevBox).not.toBeNull();
+    expect(mTextBox).not.toBeNull();
+    if (mPrevBox && mTextBox) {
+      expect(mPrevBox.x).toBeLessThan(mTextBox.x);
+    }
+
+    const mobileAllTimeBtn = mobileSegmentedControl.locator("button", { hasText: "All Time" });
+    await expect(mobileAllTimeBtn).toBeVisible();
+
+    // Capture mobile leaderboard screenshot
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_leaderboard.png"),
+      fullPage: false,
+    });
+
+    // Switch back to Ledger
+    const mobileLedgerBtn = page.locator(".mobile-bottom-nav button", { hasText: "Ledger" });
+    await mobileLedgerBtn.click();
+    await page.waitForTimeout(300);
 
     // Open Account / Profile Modal on mobile via bottom nav Account button
     const accountBtn = page.locator(".mobile-bottom-nav button", { hasText: /Account|Sign In/i });

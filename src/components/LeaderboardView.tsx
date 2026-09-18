@@ -67,72 +67,67 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
         </div>
 
         {/* Period Switcher */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div className="desktop-nav-tabs" style={{ margin: 0 }}>
-            <div style={{ display: "inline-flex", alignItems: "center" }}>
-              <button
-                type="button"
-                className={`nav-tab-btn ${period === "year" ? "active" : ""}`}
-                onClick={() => setPeriod("year")}
-              >
-                <span>📅 {selectedYear}</span>
-              </button>
-              
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          <div className="segmented-control" style={{ margin: 0 }}>
+            <div
+              role="button"
+              tabIndex={0}
+              className={`segmented-tab-btn ${period === "year" ? "active" : ""}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.25rem",
+                padding: period === "year" ? "0.25rem 0.55rem" : "0.38rem 0.95rem",
+                cursor: "pointer"
+              }}
+              onClick={() => {
+                if (period !== "year") setPeriod("year");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (period !== "year") setPeriod("year");
+                }
+              }}
+            >
               {period === "year" && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", paddingRight: "0.25rem" }}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedYear((y) => y - 1)}
-                    title="Previous year"
-                    aria-label="Previous year"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-muted)",
-                      cursor: "pointer",
-                      padding: "0.35rem 0.45rem",
-                      minWidth: "26px",
-                      minHeight: "26px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "0.75rem",
-                      lineHeight: 1
-                    }}
-                  >
-                    ◀
-                  </button>
-                  {selectedYear < currentYear && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedYear((y) => y + 1)}
-                      title="Next year"
-                      aria-label="Next year"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-muted)",
-                        cursor: "pointer",
-                        padding: "0.35rem 0.45rem",
-                        minWidth: "26px",
-                        minHeight: "26px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        lineHeight: 1
-                      }}
-                    >
-                      ▶
-                    </button>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedYear((y) => y - 1);
+                  }}
+                  title="Previous year"
+                  aria-label="Previous year"
+                  className="year-stepper-btn"
+                >
+                  ◀
+                </button>
+              )}
+
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                <span>📅</span>
+                <span className="year-display">{selectedYear}</span>
+              </span>
+
+              {period === "year" && selectedYear < currentYear && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedYear((y) => y + 1);
+                  }}
+                  title="Next year"
+                  aria-label="Next year"
+                  className="year-stepper-btn"
+                >
+                  ▶
+                </button>
               )}
             </div>
 
             <button
               type="button"
-              className={`nav-tab-btn ${period === "all" ? "active" : ""}`}
+              className={`segmented-tab-btn ${period === "all" ? "active" : ""}`}
               onClick={() => setPeriod("all")}
             >
               🌌 All Time
