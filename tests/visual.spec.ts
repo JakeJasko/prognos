@@ -49,6 +49,11 @@ test.describe("Prognos Visual & Functional Suite", () => {
       expect(creatorBox.height).toBeGreaterThanOrEqual(60);
     }
 
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_desktop_creator_wrapped.png"),
+      fullPage: false,
+    });
+
     // Switch to Leaderboard
     await leaderboardBtn.click();
     await expect(page.locator("h2", { hasText: "Forecasting Leaderboard" })).toBeVisible();
