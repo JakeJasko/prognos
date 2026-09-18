@@ -1521,24 +1521,30 @@ h1, h2, h3, .font-display {
     font-size: 0.85rem !important;
   }
 
-  /* Mobile Bottom Sheet Modal */
+  /* Mobile Modals: Cleanly Centered & Inset with Safe Margins */
   .dialog-overlay,
   .modal-overlay,
   .modal-backdrop {
-    align-items: flex-end;
-    padding: 0;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.25rem 1rem !important;
+    z-index: 1000 !important;
   }
 
   .dialog-box,
   .modal-card,
   .modal-content {
-    border-radius: 22px 22px 0 0;
-    max-width: 100%;
-    max-height: 86vh;
-    overflow-y: auto;
-    padding: 1.5rem 1.25rem calc(1.75rem + env(safe-area-inset-bottom));
-    animation: sheetSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
-    border-bottom: none;
+    border-radius: var(--radius-md) !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    max-height: calc(100dvh - 3.5rem) !important;
+    max-height: calc(100vh - 3.5rem) !important;
+    overflow-y: auto !important;
+    padding: 1.5rem 1.25rem 1.5rem !important;
+    margin: auto !important;
+    border: 1px solid var(--border-brass) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
+    animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
   /* Bottom Navigation Bar */
@@ -1636,6 +1642,17 @@ h1, h2, h3, .font-display {
     border-radius: 50%;
     object-fit: cover;
     border: 1.5px solid var(--accent-brass);
+  }
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

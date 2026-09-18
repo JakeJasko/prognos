@@ -8,7 +8,6 @@ interface ProfileModalProps {
   onLoginSuccess: (user: User) => void;
   onLogout: () => void;
   onClose: () => void;
-  onOpenAdminModal?: () => void;
   onOpenBackupModal?: () => void;
 }
 
@@ -17,7 +16,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onLoginSuccess,
   onLogout,
   onClose,
-  onOpenAdminModal,
   onOpenBackupModal,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -241,49 +239,28 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     gap: "0.4rem",
                   }}
                 >
-                  <Shield size={14} />
-                  Observatory Administration
+                  <Database size={14} style={{ color: "var(--accent-brass)" }} />
+                  Archival Storage & Backups
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                  {onOpenAdminModal && (
+                  {onOpenBackupModal && (
                     <button
                       type="button"
                       className="btn-brass"
                       onClick={() => {
                         onClose();
-                        onOpenAdminModal();
-                      }}
-                      style={{
-                        padding: "0.4rem 0.85rem",
-                        fontSize: "0.8rem",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Shield size={14} />
-                      <span>Admin Console</span>
-                    </button>
-                  )}
-                  {onOpenBackupModal && (
-                    <button
-                      type="button"
-                      className="btn-subtle"
-                      onClick={() => {
-                        onClose();
                         onOpenBackupModal();
                       }}
                       style={{
-                        padding: "0.4rem 0.85rem",
-                        fontSize: "0.8rem",
+                        padding: "0.45rem 0.95rem",
+                        fontSize: "0.82rem",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.4rem",
+                        gap: "0.45rem",
                         cursor: "pointer",
                       }}
                     >
-                      <Database size={14} style={{ color: "var(--accent-brass)" }} />
+                      <Database size={14} />
                       <span>Archival & Backups</span>
                     </button>
                   )}

@@ -66,7 +66,7 @@ test.describe("Prognos Visual & Functional Suite", () => {
     });
   });
 
-  test("Mobile layout, bottom nav, and predict modal toggle", async ({ page }, testInfo) => {
+  test("Mobile layout, bottom nav, and centered modal verification", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-chromium", "Mobile only");
 
     await page.goto("http://localhost:3000");
@@ -91,40 +91,94 @@ test.describe("Prognos Visual & Functional Suite", () => {
     const creatorWrapper = page.locator(".prediction-creator-wrapper");
     await expect(creatorWrapper).toBeHidden();
 
-    // Capture initial mobile dark view
-    await page.screenshot({
-      path: path.join(ARTIFACTS_DIR, "headless_mobile_dark_hidden.png"),
-      fullPage: false,
-    });
-
     // Tap the 'Predict' (+) button on bottom nav
     const predictBtn = page.locator(".mobile-nav-btn-highlight");
     await predictBtn.click();
     await page.waitForTimeout(400);
-
-    // Prediction creator should now be open
     await expect(creatorWrapper).toBeVisible();
-    await expect(page.locator(".creator-prompt", { hasText: "New Observation & Probability" })).toBeVisible();
 
-    // Capture open creator modal view
-    await page.screenshot({
-      path: path.join(ARTIFACTS_DIR, "headless_mobile_creator_open.png"),
-      fullPage: false,
-    });
-
-    // Close the creator by clicking the Predict button again (which is now Close/x)
+    // Close the creator
     await predictBtn.click();
     await page.waitForTimeout(300);
     await expect(creatorWrapper).toBeHidden();
 
-    // Switch to mobile light mode
-    const themeBtn = page.locator(".theme-toggle-btn");
-    await themeBtn.click();
+    // Open Account / Profile Modal on mobile via bottom nav Account button
+    const accountBtn = page.locator(".mobile-bottom-nav button", { hasText: /Account|Sign In/i });
+    await accountBtn.click();
     await page.waitForTimeout(400);
 
-    // Capture mobile light mode
+    // Modal should be visible and centered
+    const modalBox = page.locator(".dialog-box");
+    await expect(modalBox).toBeVisible();
+
+    // Verify 'Admin Console' button is REMOVED
+    const adminConsoleBtn = page.locator("button:has-text('Admin Console')");
+    await expect(adminConsoleBtn).toHaveCount(0);
+
+    // Verify modal box is centered (top is greater than 20px and bottom has clear clearance)
+    const box = await modalBox.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      expect(box.y).toBeGreaterThan(20);
+      const viewport = page.viewportSize();
+      if (viewport) {
+        // Must not touch the bottom of the viewport
+        expect(box.y + box.height).toBeLessThan(viewport.height);
+      }
+    }
+
+    // Capture mobile centered modal screenshot
     await page.screenshot({
-      path: path.join(ARTIFACTS_DIR, "headless_mobile_light.png"),
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_modal_centered.png"),
+      fullPage: false,
+    });
+
+    // Close modal
+    const closeBtn = page.locator(".dialog-box button[title='Close dialog']").first();
+    await closeBtn.click();
+    await page.waitForTimeout(300);
+    await expect(modalBox).toBeHidden();
+
+    // Now log in as admin user to test the logged-in profile modal
+    await page.evaluate(async () => {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+      const adminUser = users.find((u: any) => u.isAdmin) || users[0];
+      if (adminUser) {
+        localStorage.setItem("prognos_local_user_id", adminUser.id);
+      }
+    });
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    // Open Account modal again
+    const loggedInAccountBtn = page.locator(".mobile-bottom-nav button", { hasText: /Account/i });
+    await loggedInAccountBtn.click();
+    await page.waitForTimeout(400);
+
+    const loggedInModalBox = page.locator(".dialog-box");
+    await expect(loggedInModalBox).toBeVisible();
+
+    // Verify Admin Console button is NOT present
+    await expect(page.locator("button:has-text('Admin Console')")).toHaveCount(0);
+
+    // Verify Log Out button is visible and fully on screen
+    const logoutBtn = page.locator("button:has-text('Log Out')");
+    await expect(logoutBtn).toBeVisible();
+
+    const loggedInBox = await loggedInModalBox.boundingBox();
+    expect(loggedInBox).not.toBeNull();
+    if (loggedInBox) {
+      const viewport = page.viewportSize();
+      if (viewport) {
+        // Modal must be cleanly above the bottom of the screen
+        expect(loggedInBox.y + loggedInBox.height).toBeLessThan(viewport.height);
+      }
+    }
+
+    // Capture screenshot of logged in mobile profile modal
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_profile_loggedin.png"),
       fullPage: false,
     });
   });

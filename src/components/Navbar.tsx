@@ -11,7 +11,6 @@ interface NavbarProps {
   onOpenProfileModal: () => void;
   onOpenBackupModal: () => void;
   onOpenAboutModal: () => void;
-  onOpenAdminModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,7 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenBackupModal,
   onOpenAboutModal,
-  onOpenAdminModal,
 }) => {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
