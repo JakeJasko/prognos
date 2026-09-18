@@ -170,6 +170,8 @@ test.describe("Prognos Visual & Functional Suite", () => {
     const scopePopover = commandToolbar.locator(".scope-popover-menu");
     await expect(scopePopover).toBeVisible();
 
+    await page.waitForTimeout(250);
+
     // Capture popover open screenshot in dark mode
     await page.screenshot({
       path: path.join(ARTIFACTS_DIR, "headless_command_toolbar_popover.png"),
@@ -253,6 +255,34 @@ test.describe("Prognos Visual & Functional Suite", () => {
     // On mobile, desktop nav tabs MUST be hidden
     const desktopNav = page.locator(".desktop-nav-tabs").first();
     await expect(desktopNav).toBeHidden();
+
+    // Verify mobile command toolbar Scope popover does NOT clip off-screen
+    const mobileScopeBtn = page.locator(".toolbar-dropdown-btn", { hasText: /All Scopes/i }).first();
+    await expect(mobileScopeBtn).toBeVisible();
+    await mobileScopeBtn.click();
+    const mobileScopePopover = page.locator(".scope-popover-menu").first();
+    await expect(mobileScopePopover).toBeVisible();
+
+    const popoverBox = await mobileScopePopover.boundingBox();
+    expect(popoverBox).not.toBeNull();
+    if (popoverBox) {
+      // Must be completely inside the viewport on the left (x >= 0)
+      expect(popoverBox.x).toBeGreaterThanOrEqual(0);
+      // Must not extend beyond the viewport width (390px)
+      expect(popoverBox.x + popoverBox.width).toBeLessThanOrEqual(390);
+    }
+
+    await page.waitForTimeout(250);
+
+    // Capture screenshot of mobile scope popover open
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_scope_popover_fixed.png"),
+      fullPage: false,
+    });
+
+    // Close mobile popover by selecting All Scopes
+    await mobileScopePopover.locator(".scope-menu-item", { hasText: /All Scopes/i }).click();
+    await expect(mobileScopePopover).toBeHidden();
 
     // Bottom navigation bar MUST be visible
     const bottomNav = page.locator(".mobile-bottom-nav");
