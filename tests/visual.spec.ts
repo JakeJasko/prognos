@@ -86,6 +86,35 @@ test.describe("Prognos Visual & Functional Suite", () => {
     const allTimeBtn = segmentedControl.locator("button", { hasText: "All Time" });
     await expect(allTimeBtn).toBeVisible();
 
+    // Verify that users with image avatars (e.g. Google login photo URLs or data URLs) render an <img> tag instead of raw text
+    await page.evaluate(async () => {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+      const adminUser = users.find((u: any) => u.isAdmin) || users[0];
+      if (adminUser) {
+        await fetch(`/api/users/${adminUser.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "x-user-id": adminUser.id },
+          body: JSON.stringify({
+            avatar: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+          })
+        });
+      }
+    });
+
+    // Refresh Leaderboard
+    const refreshBtn = page.locator("button[title='Refresh Leaderboard']");
+    await refreshBtn.click();
+    await page.waitForTimeout(400);
+
+    // Verify user avatar image is rendered with class user-avatar-img
+    const avatarImg = page.locator(".user-avatar-img").first();
+    await expect(avatarImg).toBeVisible();
+
+    // Verify raw url text is NEVER displayed in the leaderboard table
+    const rawUrlText = page.locator("text=/data:image/i");
+    await expect(rawUrlText).toHaveCount(0);
+
     await page.screenshot({
       path: path.join(ARTIFACTS_DIR, "headless_desktop_leaderboard.png"),
       fullPage: false,

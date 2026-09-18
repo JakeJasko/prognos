@@ -19,6 +19,7 @@ import {
   Award
 } from "lucide-react";
 import { AdminOverview, Household, Prediction, User } from "../types";
+import { UserAvatar } from "./UserAvatar";
 import {
   fetchAdminOverview,
   fetchAdminHouseholds,
@@ -469,7 +470,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-                        <span style={{ fontSize: "1.2rem" }}>{u.avatar || "🔭"}</span>
+                        <UserAvatar avatar={u.avatar} name={u.name} size={24} fontSize="1.2rem" />
                         <div>
                           {isEditing ? (
                             <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>

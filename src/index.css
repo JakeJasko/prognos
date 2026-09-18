@@ -305,6 +305,26 @@ h1, h2, h3, .font-display {
   background: rgba(148, 108, 10, 0.1);
 }
 
+/* Universal User Avatar Styling */
+.user-avatar-img {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-surface);
+}
+
+.user-avatar-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
 .header-tools {
   display: flex;
   align-items: center;

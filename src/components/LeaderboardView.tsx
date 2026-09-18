@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Trophy, Medal, Lock, Sparkles, RefreshCw, HelpCircle, ArrowUpRight, TrendingUp } from "lucide-react";
 import { LeaderboardEntry, LeaderboardResponse, User } from "../types";
 import { fetchLeaderboard } from "../api";
+import { UserAvatar } from "./UserAvatar";
 
 interface LeaderboardViewProps {
   currentUser: User | null;
@@ -204,7 +205,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
-                  <span style={{ fontSize: "1.75rem" }}>{entry.avatar}</span>
+                  <UserAvatar avatar={entry.avatar} name={entry.name} size={36} fontSize="1.6rem" />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem", color: isMe ? "var(--accent-brass)" : "var(--text-primary)" }}>
                       {entry.name} {isMe && <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>(You)</span>}
@@ -293,7 +294,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
                       {/* Forecaster info */}
                       <td style={{ padding: "0.85rem 1rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                          <span style={{ fontSize: "1.25rem" }}>{entry.avatar}</span>
+                          <UserAvatar avatar={entry.avatar} name={entry.name} size={24} fontSize="1.15rem" />
                           <div>
                             <div style={{ fontWeight: isMe ? 700 : 500, color: isMe ? "var(--accent-brass)" : "var(--text-primary)" }}>
                               {entry.name} {isMe && <span style={{ fontSize: "0.72rem", color: "var(--accent-brass)", marginLeft: "0.3rem" }}>(You)</span>}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Users, Home, Plus, Key, Copy, Check, Shield, UserPlus, X, Trash2 } from "lucide-react";
 import { Household, HouseholdMember, User } from "../types";
 import { createHousehold, fetchHouseholdMembers, fetchHouseholds, joinHousehold, adminDeleteHousehold } from "../api";
+import { UserAvatar } from "./UserAvatar";
 
 interface HouseholdManagerModalProps {
   currentUser: User | null;
@@ -308,7 +309,7 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
                           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                             {members.map((m) => (
                               <div key={m.id} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "var(--bg-surface)", padding: "0.2rem 0.5rem", borderRadius: "12px", fontSize: "0.75rem" }}>
-                                <span>{m.avatar}</span>
+                                <UserAvatar avatar={m.avatar} name={m.name} size={16} fontSize="0.85rem" />
                                 <span style={{ fontWeight: 500 }}>{m.name}</span>
                                 {m.role === "owner" && <span style={{ fontSize: "0.65rem", color: "var(--accent-brass)" }}>(owner)</span>}
                               </div>

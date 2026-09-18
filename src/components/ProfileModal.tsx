@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { X, LogOut, ShieldCheck, Sparkles, AlertCircle, Shield, Database } from "lucide-react";
 import { User } from "../types";
 import { fetchGoogleConfig, verifyGoogleCredential } from "../api";
+import { UserAvatar } from "./UserAvatar";
 
 interface ProfileModalProps {
   currentUser: User | null;
@@ -160,16 +161,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 border: "2px solid var(--accent-brass)",
                 flexShrink: 0
               }}>
-                {currentUser.avatar && currentUser.avatar.startsWith("http") ? (
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span>{currentUser.avatar || "🔭"}</span>
-                )}
+                <UserAvatar avatar={currentUser.avatar} name={currentUser.name} size={56} fontSize="1.75rem" />
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Calendar, Clock, CheckCircle2, XCircle, HelpCircle, Trash2, ArrowUpRight, Check, Globe, Home, Users, PlusCircle, Sparkles } from "lucide-react";
 import { Prediction, User } from "../types";
+import { UserAvatar } from "./UserAvatar";
 
 interface PredictionLedgerItemProps {
   prediction: Prediction;
@@ -163,7 +164,7 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
           
           <div className="item-meta">
             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-              <span>{prediction.creator_avatar}</span>
+              <UserAvatar avatar={prediction.creator_avatar} name={prediction.creator_name} size={16} fontSize="0.95rem" />
               <span>{prediction.creator_name}</span>
             </span>
 
@@ -378,7 +379,7 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        <span>{f.user_avatar || "🔭"}</span>
+                        <UserAvatar avatar={f.user_avatar} name={f.user_name} size={16} fontSize="0.9rem" />
                         <span style={{ fontWeight: isMe ? 700 : 600, color: isMe ? "var(--accent-brass)" : "var(--text-primary)" }}>
                           {f.user_name || "Observer"} {isMe && "(You)"}
                         </span>

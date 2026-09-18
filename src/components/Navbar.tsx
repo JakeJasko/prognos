@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle } from "lucide-react";
 import { Household, User } from "../types";
+import { UserAvatar } from "./UserAvatar";
 
 interface NavbarProps {
   currentUser: User | null;
@@ -146,16 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               borderColor: currentUser.isAdmin ? "var(--border-brass)" : undefined
             }}
           >
-            {currentUser.avatar && currentUser.avatar.startsWith("http") ? (
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }}
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <span style={{ fontSize: "1.05rem" }}>{currentUser.avatar || "🔭"}</span>
-            )}
+            <UserAvatar avatar={currentUser.avatar} name={currentUser.name} size={20} fontSize="1.05rem" />
             <span className="observer-name" style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {currentUser.name}
             </span>
