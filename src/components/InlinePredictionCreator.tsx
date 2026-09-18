@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, Calendar, ChevronDown, ChevronUp, Plus, Tag, ArrowRight, Globe, Home, Users } from "lucide-react";
+import { Sparkles, Calendar, ChevronDown, ChevronUp, Plus, Tag, ArrowRight, Globe, Home, Users, X } from "lucide-react";
 import { Household, User } from "../types";
 
 interface InlinePredictionCreatorProps {
@@ -8,6 +8,7 @@ interface InlinePredictionCreatorProps {
   activeHousehold: Household | null;
   onOpenHouseholdModal: () => void;
   onOpenAuthModal?: () => void;
+  onClose?: () => void;
   onSubmit: (data: {
     title: string;
     probability: number;
@@ -26,6 +27,7 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
   activeHousehold,
   onOpenHouseholdModal,
   onOpenAuthModal,
+  onClose,
   onSubmit,
 }) => {
   const [title, setTitle] = useState("");
@@ -165,9 +167,22 @@ export const InlinePredictionCreator: React.FC<InlinePredictionCreatorProps> = (
       )}
 
       <div className="creator-top-bar">
-        <div className="creator-prompt" style={{ marginBottom: 0 }}>
-          <Sparkles size={13} />
-          <span>New Observation & Probability</span>
+        <div className="creator-prompt-header">
+          <div className="creator-prompt" style={{ marginBottom: 0 }}>
+            <Sparkles size={13} />
+            <span>New Observation & Probability</span>
+          </div>
+          {onClose && (
+            <button
+              type="button"
+              className="creator-close-btn"
+              onClick={onClose}
+              title="Dismiss"
+              aria-label="Close prediction form"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         {/* Scope / Visibility Switcher */}

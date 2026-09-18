@@ -314,6 +314,10 @@ h1, h2, h3, .font-display {
 }
 
 /* Inline Prediction Creator */
+.prediction-creator-wrapper {
+  display: block;
+}
+
 .inline-creator {
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
@@ -325,6 +329,24 @@ h1, h2, h3, .font-display {
 .inline-creator:focus-within {
   border-color: var(--border-brass);
   box-shadow: 0 4px 24px -4px rgba(245, 208, 97, 0.08);
+}
+
+.creator-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.creator-prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.creator-close-btn {
+  display: none;
 }
 
 .creator-prompt {
@@ -1131,6 +1153,15 @@ h1, h2, h3, .font-display {
   }
 
   /* Fast Inline Prediction Creator on Mobile */
+  .prediction-creator-wrapper.mobile-hidden {
+    display: none !important;
+  }
+
+  .prediction-creator-wrapper.mobile-open {
+    display: block;
+    animation: creatorReveal 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .inline-creator {
     padding: 1rem 1.1rem;
     border-radius: var(--radius-sm);
@@ -1142,6 +1173,32 @@ h1, h2, h3, .font-display {
     align-items: flex-start;
     gap: 0.65rem;
     margin-bottom: 0.85rem;
+  }
+
+  .creator-prompt-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .creator-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: var(--radius-xs);
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .creator-close-btn:hover,
+  .creator-close-btn:active {
+    color: var(--accent-brass);
+    background: rgba(245, 208, 97, 0.1);
   }
 
   .creator-top-bar > div:last-child {
@@ -1462,12 +1519,27 @@ h1, h2, h3, .font-display {
     transform: scale(0.9);
   }
 
+  .mobile-nav-btn-highlight.active .mobile-nav-highlight-inner {
+    box-shadow: 0 0 0 3px var(--bg-surface), 0 0 0 5px var(--accent-brass), 0 6px 22px rgba(245, 208, 97, 0.5);
+  }
+
   .mobile-nav-avatar {
     width: 22px;
     height: 22px;
     border-radius: 50%;
     object-fit: cover;
     border: 1.5px solid var(--accent-brass);
+  }
+}
+
+@keyframes creatorReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

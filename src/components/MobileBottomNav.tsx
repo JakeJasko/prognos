@@ -6,6 +6,7 @@ interface MobileBottomNavProps {
   activeTab: "observatory" | "leaderboard" | "instrument";
   onTabChange: (tab: "observatory" | "leaderboard" | "instrument") => void;
   currentUser: User | null;
+  isPredictOpen?: boolean;
   onOpenPredict: () => void;
   onOpenProfile: () => void;
 }
@@ -14,6 +15,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   activeTab,
   onTabChange,
   currentUser,
+  isPredictOpen = false,
   onOpenPredict,
   onOpenProfile,
 }) => {
@@ -42,15 +44,21 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       {/* 3. Center Highlight: New Forecast Trigger */}
       <button
         type="button"
-        className="mobile-nav-btn-highlight"
+        className={`mobile-nav-btn-highlight ${isPredictOpen ? "active" : ""}`}
         onClick={onOpenPredict}
-        title="Formulate New Prediction"
-        aria-label="New Prediction"
+        title={isPredictOpen ? "Close Observation Form" : "Formulate New Prediction"}
+        aria-label={isPredictOpen ? "Close Observation Form" : "New Prediction"}
       >
         <div className="mobile-nav-highlight-inner">
-          <PlusCircle size={24} />
+          <PlusCircle
+            size={24}
+            style={{
+              transform: isPredictOpen ? "rotate(45deg)" : "none",
+              transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+            }}
+          />
         </div>
-        <span>Predict</span>
+        <span>{isPredictOpen ? "Close" : "Predict"}</span>
       </button>
 
       {/* 4. Leaderboard */}

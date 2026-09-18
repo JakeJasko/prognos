@@ -42,6 +42,7 @@ export const App: React.FC = () => {
   const [isHouseholdOpen, setIsHouseholdOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isMobilePredictOpen, setIsMobilePredictOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadInitialData = async () => {
@@ -154,6 +155,7 @@ export const App: React.FC = () => {
     }
     await createPrediction({ ...data, userId: currentUser.id });
     await refreshPredictionsAndStats(currentUser.id, scopeFilter, activeHousehold?.id);
+    setIsMobilePredictOpen(false);
   };
 
   const handleAddForecast = async (predictionId: string, probability: number, comment?: string) => {
@@ -245,14 +247,17 @@ export const App: React.FC = () => {
           {/* Left Column: The Astronomer's Ledger */}
           <section className="ledger-column">
             {/* In-Situ Fast Prediction Creator */}
-            <InlinePredictionCreator
-              currentUser={currentUser}
-              households={households}
-              activeHousehold={activeHousehold}
-              onOpenHouseholdModal={() => setIsHouseholdOpen(true)}
-              onOpenAuthModal={() => setIsProfileOpen(true)}
-              onSubmit={handleCreatePrediction}
-            />
+            <div className={`prediction-creator-wrapper ${isMobilePredictOpen ? "mobile-open" : "mobile-hidden"}`}>
+              <InlinePredictionCreator
+                currentUser={currentUser}
+                households={households}
+                activeHousehold={activeHousehold}
+                onOpenHouseholdModal={() => setIsHouseholdOpen(true)}
+                onOpenAuthModal={() => setIsProfileOpen(true)}
+                onSubmit={handleCreatePrediction}
+                onClose={() => setIsMobilePredictOpen(false)}
+              />
+            </div>
 
             {/* Unified Filter Bar */}
             <div className="unified-filter-bar">
@@ -486,17 +491,37 @@ export const App: React.FC = () => {
       <MobileBottomNav
         activeTab={activeNavTab}
         onTabChange={(tab) => {
+          if (tab === "observatory" && activeNavTab === "observatory" && isMobilePredictOpen) {
+            setIsMobilePredictOpen(false);
+          }
           setActiveNavTab(tab);
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         currentUser={currentUser}
+        isPredictOpen={isMobilePredictOpen}
         onOpenPredict={() => {
-          setActiveNavTab("observatory");
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setTimeout(() => {
-            const input = document.querySelector(".creator-input") as HTMLInputElement | null;
-            if (input) input.focus();
-          }, 150);
+          if (activeNavTab !== "observatory") {
+            setActiveNavTab("observatory");
+            setIsMobilePredictOpen(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => {
+              const input = document.querySelector(".creator-input") as HTMLInputElement | null;
+              if (input) input.focus();
+            }, 150);
+            return;
+          }
+
+          setIsMobilePredictOpen((prev) => {
+            const next = !prev;
+            if (next) {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              setTimeout(() => {
+                const input = document.querySelector(".creator-input") as HTMLInputElement | null;
+                if (input) input.focus();
+              }, 150);
+            }
+            return next;
+          });
         }}
         onOpenProfile={() => setIsProfileOpen(true)}
       />
