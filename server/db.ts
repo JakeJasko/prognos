@@ -146,6 +146,30 @@ export function setSetting(key: string, value: string): void {
   db.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value);
 }
 
+export function getAdminEmails(): string[] {
+  const envAdmins = process.env.ADMIN_EMAILS || "";
+  const dbAdmins = getSetting("ADMIN_EMAILS") || "";
+  const combined = `${envAdmins},${dbAdmins}`;
+  return combined
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isUserAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  const admins = getAdminEmails();
+  return admins.includes(email.trim().toLowerCase());
+}
+
+export function isUserIdAdmin(userId?: string | null): boolean {
+  if (!userId) return false;
+  const db = getDb();
+  const row = db.prepare("SELECT email FROM users WHERE id = ?").get(userId) as { email?: string } | undefined;
+  if (!row || !row.email) return false;
+  return isUserAdmin(row.email);
+}
+
 export function seedDemoData(db: DatabaseSync) {
   // Clear existing
   db.exec(`

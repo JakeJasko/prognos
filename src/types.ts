@@ -4,6 +4,19 @@ export interface User {
   avatar: string;
   email?: string;
   created_at: string;
+  isAdmin?: boolean;
+}
+
+export interface AdminOverview {
+  totalUsers: number;
+  totalHouseholds: number;
+  totalQuestions: number;
+  activeQuestions: number;
+  resolvedQuestions: number;
+  totalForecasts: number;
+  adminEmails: string[];
+  serverTime: string;
+  nodeVersion: string;
 }
 
 export interface Household {

@@ -1,4 +1,4 @@
-import { Household, HouseholdMember, LanInfo, LeaderboardResponse, Prediction, Stats, User } from "./types";
+import { AdminOverview, Household, HouseholdMember, LanInfo, LeaderboardResponse, Prediction, Stats, User } from "./types";
 
 const API_BASE = "/api";
 
@@ -180,21 +180,138 @@ export async function fetchStats(userId?: string): Promise<Stats> {
   return res.json();
 }
 
-export async function seedDemoData(): Promise<any> {
-  const res = await fetch(`${API_BASE}/seed`, { method: "POST" });
-  if (!res.ok) throw new Error("Failed to seed demo data");
+export async function seedDemoData(userId?: string): Promise<any> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (userId) headers["x-user-id"] = userId;
+  const res = await fetch(`${API_BASE}/seed`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ userId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to seed demo data");
+  }
   return res.json();
 }
 
-export async function importBackup(data: any): Promise<any> {
+export async function importBackup(data: any, userId?: string): Promise<any> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (userId) headers["x-user-id"] = userId;
   const res = await fetch(`${API_BASE}/import`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
+    body: JSON.stringify({ data, userId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to import backup");
+  }
+  return res.json();
+}
+
+// ---------------- Admin Management ----------------
+export async function fetchAdminOverview(userId: string): Promise<AdminOverview> {
+  const res = await fetch(`${API_BASE}/admin/overview`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to fetch admin overview");
+  }
+  return res.json();
+}
+
+export async function fetchAdminHouseholds(userId: string): Promise<Household[]> {
+  const res = await fetch(`${API_BASE}/admin/households`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to fetch all circles");
+  }
+  return res.json();
+}
+
+export async function adminUpdateUser(userId: string, targetUserId: string, data: { name?: string; avatar?: string }): Promise<User> {
+  const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to import backup");
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to update user");
+  }
+  return res.json();
+}
+
+export async function adminDeleteUser(userId: string, targetUserId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to delete user");
+  }
+  return res.json();
+}
+
+export async function adminUpdateHousehold(userId: string, householdId: string, name: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/households/${encodeURIComponent(householdId)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify({ name, userId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to rename circle");
+  }
+  return res.json();
+}
+
+export async function adminDeleteHousehold(userId: string, householdId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/households/${encodeURIComponent(householdId)}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify({ userId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to delete circle");
+  }
+  return res.json();
+}
+
+export async function adminPatchPrediction(
+  userId: string,
+  predictionId: string,
+  data: { title?: string; notes?: string; resolveBy?: string; tags?: string[] }
+): Promise<Prediction> {
+  const res = await fetch(`${API_BASE}/predictions/${encodeURIComponent(predictionId)}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify({ ...data, userId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to update prediction");
   }
   return res.json();
 }

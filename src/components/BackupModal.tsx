@@ -1,19 +1,21 @@
 import React, { useState } from "react";
-import { X, Download, Upload, Sparkles, Database, CheckCircle2 } from "lucide-react";
+import { X, Download, Upload, Sparkles, Database, CheckCircle2, Shield } from "lucide-react";
 import { importBackup, seedDemoData } from "../api";
+import { User } from "../types";
 
 interface BackupModalProps {
+  currentUser?: User | null;
   onClose: () => void;
   onRefreshData: () => Promise<void>;
 }
 
-export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData }) => {
+export const BackupModal: React.FC<BackupModalProps> = ({ currentUser, onClose, onRefreshData }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleExport = () => {
-    window.location.href = "/api/export";
+    window.location.href = `/api/export?userId=${encodeURIComponent(currentUser?.id || "")}`;
     setMessage("Export downloaded successfully!");
     setTimeout(() => setMessage(""), 3000);
   };
@@ -29,7 +31,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
     try {
       const text = await file.text();
       const json = JSON.parse(text);
-      await importBackup(json);
+      await importBackup(json, currentUser?.id);
       await onRefreshData();
       setMessage("Data imported successfully!");
       setTimeout(() => {
@@ -53,7 +55,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
     setMessage("");
 
     try {
-      await seedDemoData();
+      await seedDemoData(currentUser?.id);
       await onRefreshData();
       setMessage("Sample predictions and calibration record loaded!");
       setTimeout(() => {
@@ -73,9 +75,26 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Database size={18} style={{ color: "var(--accent-brass)" }} />
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 500 }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 600 }}>
               Archival Storage & Backup
             </h2>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.2rem",
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                color: "var(--accent-brass)",
+                background: "rgba(245, 208, 97, 0.12)",
+                padding: "0.15rem 0.4rem",
+                borderRadius: "4px",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase"
+              }}
+            >
+              <Shield size={10} /> Admin Only
+            </span>
           </div>
           <button className="btn-ghost" onClick={onClose}>
             <X size={18} />
@@ -121,9 +140,9 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
             <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.65rem" }}>
               Upload a previously exported JSON backup to restore observations.
             </p>
-            <label className="btn-subtle" style={{ cursor: "pointer", display: "inline-flex", padding: "0.35rem 0.75rem", fontSize: "0.78rem" }}>
+            <label className="btn-subtle" style={{ padding: "0.35rem 0.75rem", fontSize: "0.78rem", display: "inline-flex", alignItems: "center", gap: "0.35rem", cursor: "pointer", width: "fit-content" }}>
               <Upload size={13} />
-              <span>{loading ? "Importing..." : "Choose File"}</span>
+              <span>{loading ? "Processing..." : "Choose File"}</span>
               <input
                 type="file"
                 accept=".json"
@@ -134,9 +153,9 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
             </label>
           </div>
 
-          {/* Seed Demo */}
-          <div style={{ padding: "0.85rem", background: "rgba(245, 208, 97, 0.05)", borderRadius: "var(--radius-xs)", border: "1px solid var(--border-brass)" }}>
-            <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.2rem", color: "var(--accent-brass)" }}>
+          {/* Seed Demo Data */}
+          <div style={{ padding: "0.85rem", background: "rgba(245, 208, 97, 0.04)", borderRadius: "var(--radius-xs)", border: "1px solid var(--border-brass)" }}>
+            <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--accent-brass)", marginBottom: "0.2rem" }}>
               Sample Observations & Track Record
             </div>
             <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "0.65rem" }}>
@@ -150,7 +169,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({ onClose, onRefreshData
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.25rem" }}>
-          <button type="button" className="btn-ghost" onClick={onClose}>
+          <button className="btn-ghost" onClick={onClose} style={{ fontSize: "0.82rem" }}>
             Close
           </button>
         </div>

@@ -20,6 +20,7 @@ import { HouseholdManagerModal } from "./components/HouseholdManagerModal";
 import { ProfileModal } from "./components/ProfileModal";
 import { BackupModal } from "./components/BackupModal";
 import { AboutModal } from "./components/AboutModal";
+import { AdminModal } from "./components/AdminModal";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 
 export const App: React.FC = () => {
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [isHouseholdOpen, setIsHouseholdOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadInitialData = async () => {
@@ -222,6 +224,7 @@ export const App: React.FC = () => {
         onOpenProfileModal={() => setIsProfileOpen(true)}
         onOpenBackupModal={() => setIsBackupOpen(true)}
         onOpenAboutModal={() => setIsAboutOpen(true)}
+        onOpenAdminModal={() => setIsAdminOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -465,7 +468,16 @@ export const App: React.FC = () => {
 
       {isBackupOpen && (
         <BackupModal
+          currentUser={currentUser}
           onClose={() => setIsBackupOpen(false)}
+          onRefreshData={loadInitialData}
+        />
+      )}
+
+      {isAdminOpen && currentUser && (
+        <AdminModal
+          currentUser={currentUser}
+          onClose={() => setIsAdminOpen(false)}
           onRefreshData={loadInitialData}
         />
       )}

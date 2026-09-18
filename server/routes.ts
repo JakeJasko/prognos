@@ -1,7 +1,7 @@
 import { Router } from "express";
 import crypto from "node:crypto";
 import os from "node:os";
-import { getDb, getSetting, setSetting, seedDemoData } from "./db.js";
+import { getDb, getSetting, setSetting, seedDemoData, isUserAdmin, isUserIdAdmin, getAdminEmails } from "./db.js";
 import { computeBrierScore, computeCalibrationBuckets, computeLeaderboard, getBrierGrade, ScoredForecast } from "./scoring.js";
 
 export const apiRouter = Router();
@@ -37,8 +37,62 @@ apiRouter.get("/lan-info", (req, res) => {
 // ----------------------------------------------------
 apiRouter.get("/users", (req, res) => {
   const db = getDb();
-  const users = db.prepare("SELECT id, name, avatar, email, created_at FROM users ORDER BY created_at ASC").all();
-  res.json(users);
+  const users = db.prepare("SELECT id, name, avatar, email, created_at FROM users ORDER BY created_at ASC").all() as any[];
+  const enriched = users.map(u => ({
+    ...u,
+    isAdmin: isUserAdmin(u.email)
+  }));
+  res.json(enriched);
+});
+
+// Admin: Update user details (name, avatar)
+apiRouter.put("/users/:id", (req, res) => {
+  const { id } = req.params;
+  const adminId = (req.headers["x-user-id"] as string) || req.body?.adminId || (req.query?.adminId as string);
+  if (!isUserIdAdmin(adminId) && adminId !== id) {
+    return res.status(403).json({ error: "Forbidden: Administrator privileges required to modify users." });
+  }
+
+  const { name, avatar } = req.body;
+  const db = getDb();
+  const existing = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any;
+  if (!existing) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const newName = name && typeof name === "string" && name.trim() ? name.trim() : existing.name;
+  const newAvatar = avatar && typeof avatar === "string" ? avatar.trim() : existing.avatar;
+
+  db.prepare("UPDATE users SET name = ?, avatar = ? WHERE id = ?").run(newName, newAvatar, id);
+  const updated = db.prepare("SELECT id, name, avatar, email, created_at FROM users WHERE id = ?").get(id) as any;
+  res.json({ ...updated, isAdmin: isUserAdmin(updated.email) });
+});
+
+// Admin: Delete user and cascade
+apiRouter.delete("/users/:id", (req, res) => {
+  const { id } = req.params;
+  const adminId = (req.headers["x-user-id"] as string) || (req.query?.adminId as string);
+  if (!isUserIdAdmin(adminId)) {
+    return res.status(403).json({ error: "Forbidden: Only administrators can delete users." });
+  }
+
+  const db = getDb();
+  const existing = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as any;
+  if (!existing) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (id === adminId) {
+    return res.status(400).json({ error: "Cannot delete your own active administrator account." });
+  }
+
+  db.prepare("DELETE FROM forecasts WHERE user_id = ?").run(id);
+  db.prepare("DELETE FROM questions WHERE creator_id = ?").run(id);
+  db.prepare("DELETE FROM household_members WHERE user_id = ?").run(id);
+  db.prepare("DELETE FROM households WHERE creator_id = ?").run(id);
+  db.prepare("DELETE FROM users WHERE id = ?").run(id);
+
+  res.json({ success: true, deletedUserId: id });
 });
 
 // Google OAuth Configuration
@@ -105,7 +159,12 @@ apiRouter.post("/auth/google/verify", async (req, res) => {
       user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
     }
 
-    res.json({ user });
+    res.json({
+      user: {
+        ...user,
+        isAdmin: isUserAdmin(user.email)
+      }
+    });
   } catch (err: any) {
     res.status(401).json({ error: "Google verification failed: " + err.message });
   }
@@ -194,6 +253,67 @@ apiRouter.get("/households/:id/members", (req, res) => {
   `).all(id);
 
   res.json(members);
+});
+
+// Admin: Get all households platform-wide
+apiRouter.get("/admin/households", (req, res) => {
+  const adminId = (req.headers["x-user-id"] as string) || (req.query?.userId as string);
+  if (!isUserIdAdmin(adminId)) {
+    return res.status(403).json({ error: "Forbidden: Administrator access required" });
+  }
+
+  const db = getDb();
+  const households = db.prepare(`
+    SELECT 
+      h.*,
+      u.name as creator_name,
+      u.avatar as creator_avatar,
+      (SELECT COUNT(*) FROM household_members WHERE household_id = h.id) as member_count
+    FROM households h
+    LEFT JOIN users u ON h.creator_id = u.id
+    ORDER BY h.created_at ASC
+  `).all();
+
+  res.json(households);
+});
+
+// Rename circle (owner or admin)
+apiRouter.put("/households/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, userId } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: "Circle name is required" });
+
+  const db = getDb();
+  const household = db.prepare("SELECT * FROM households WHERE id = ?").get(id) as any;
+  if (!household) return res.status(404).json({ error: "Circle not found" });
+
+  const isAdmin = isUserIdAdmin(userId);
+  if (household.creator_id !== userId && !isAdmin) {
+    return res.status(403).json({ error: "Forbidden: Only circle owner or an administrator can rename this circle" });
+  }
+
+  db.prepare("UPDATE households SET name = ? WHERE id = ?").run(name.trim(), id);
+  res.json({ success: true, household: { ...household, name: name.trim() } });
+});
+
+// Delete circle (owner or admin)
+apiRouter.delete("/households/:id", (req, res) => {
+  const { id } = req.params;
+  const userId = req.body?.userId || (req.headers["x-user-id"] as string) || (req.query?.userId as string);
+
+  const db = getDb();
+  const household = db.prepare("SELECT * FROM households WHERE id = ?").get(id) as any;
+  if (!household) return res.status(404).json({ error: "Circle not found" });
+
+  const isAdmin = isUserIdAdmin(userId);
+  if (household.creator_id !== userId && !isAdmin) {
+    return res.status(403).json({ error: "Forbidden: Only circle owner or an administrator can delete this circle" });
+  }
+
+  db.prepare("DELETE FROM household_members WHERE household_id = ?").run(id);
+  db.prepare("UPDATE questions SET household_id = NULL WHERE household_id = ?").run(id);
+  db.prepare("DELETE FROM households WHERE id = ?").run(id);
+  res.json({ success: true });
 });
 
 // ----------------------------------------------------
@@ -470,14 +590,91 @@ apiRouter.delete("/predictions/:id", (req, res) => {
     return res.status(404).json({ error: "Prediction not found" });
   }
 
-  // Enforce creator-only authorization
-  if (question.creator_id !== userId) {
-    return res.status(403).json({ error: "Forbidden: You can only delete forecasts that you created." });
+  // Enforce creator-only OR administrator authorization
+  const isAdmin = isUserIdAdmin(userId);
+  if (question.creator_id !== userId && !isAdmin) {
+    return res.status(403).json({ error: "Forbidden: You can only delete forecasts that you created, unless you are an Administrator." });
   }
 
   db.prepare("DELETE FROM forecasts WHERE question_id = ?").run(id);
   db.prepare("DELETE FROM questions WHERE id = ?").run(id);
+  res.json({ success: true, deletedByAdmin: isAdmin && question.creator_id !== userId });
+});
+
+// Edit prediction details (creator or admin)
+apiRouter.patch("/predictions/:id", (req, res) => {
+  const { id } = req.params;
+  const { userId, title, notes, resolveBy, tags } = req.body;
+
+  const db = getDb();
+  const question = db.prepare("SELECT * FROM questions WHERE id = ?").get(id) as any;
+  if (!question) return res.status(404).json({ error: "Prediction not found" });
+
+  const isAdmin = isUserIdAdmin(userId);
+  if (question.creator_id !== userId && !isAdmin) {
+    return res.status(403).json({ error: "Forbidden: You can only edit predictions you created, unless you are an Administrator." });
+  }
+
+  const newTitle = title !== undefined ? String(title).trim() : question.title;
+  const newNotes = notes !== undefined ? (notes ? String(notes).trim() : null) : question.notes;
+  const newResolveBy = resolveBy ? new Date(resolveBy).toISOString() : question.resolve_by;
+  const newTags = Array.isArray(tags) ? tags.join(", ") : (tags !== undefined ? String(tags) : question.tags);
+
+  db.prepare(`
+    UPDATE questions 
+    SET title = ?, notes = ?, resolve_by = ?, tags = ?
+    WHERE id = ?
+  `).run(newTitle, newNotes, newResolveBy, newTags, id);
+
+  const updated = db.prepare("SELECT * FROM questions WHERE id = ?").get(id);
+  res.json(updated);
+});
+
+// Delete specific forecast (forecast author or admin)
+apiRouter.delete("/predictions/:id/forecasts/:forecastId", (req, res) => {
+  const { id, forecastId } = req.params;
+  const userId = req.body?.userId || (req.headers["x-user-id"] as string) || (req.query?.userId as string);
+
+  const db = getDb();
+  const forecast = db.prepare("SELECT * FROM forecasts WHERE id = ? AND question_id = ?").get(forecastId, id) as any;
+  if (!forecast) return res.status(404).json({ error: "Forecast not found" });
+
+  const isAdmin = isUserIdAdmin(userId);
+  if (forecast.user_id !== userId && !isAdmin) {
+    return res.status(403).json({ error: "Forbidden: You can only delete your own forecasts, unless you are an Administrator." });
+  }
+
+  db.prepare("DELETE FROM forecasts WHERE id = ?").run(forecastId);
   res.json({ success: true });
+});
+
+// Admin System Overview
+apiRouter.get("/admin/overview", (req, res) => {
+  const userId = (req.headers["x-user-id"] as string) || (req.query?.userId as string);
+  if (!isUserIdAdmin(userId)) {
+    return res.status(403).json({ error: "Forbidden: Administrator access required" });
+  }
+
+  const db = getDb();
+  const totalUsers = (db.prepare("SELECT COUNT(*) as c FROM users").get() as any).c;
+  const totalHouseholds = (db.prepare("SELECT COUNT(*) as c FROM households").get() as any).c;
+  const totalQuestions = (db.prepare("SELECT COUNT(*) as c FROM questions").get() as any).c;
+  const activeQuestions = (db.prepare("SELECT COUNT(*) as c FROM questions WHERE resolved = 0").get() as any).c;
+  const resolvedQuestions = (db.prepare("SELECT COUNT(*) as c FROM questions WHERE resolved = 1").get() as any).c;
+  const totalForecasts = (db.prepare("SELECT COUNT(*) as c FROM forecasts").get() as any).c;
+  const adminEmails = getAdminEmails();
+
+  res.json({
+    totalUsers,
+    totalHouseholds,
+    totalQuestions,
+    activeQuestions,
+    resolvedQuestions,
+    totalForecasts,
+    adminEmails,
+    serverTime: new Date().toISOString(),
+    nodeVersion: process.version
+  });
 });
 
 // ----------------------------------------------------
@@ -589,9 +786,14 @@ apiRouter.get("/stats", (req, res) => {
 });
 
 // ----------------------------------------------------
-// Data Backup (Export & Import) & Demo Seeding
+// Data Backup (Export & Import) & Demo Seeding (Admin Only)
 // ----------------------------------------------------
 apiRouter.get("/export", (req, res) => {
+  const userId = (req.headers["x-user-id"] as string) || (req.query?.userId as string);
+  if (!isUserIdAdmin(userId)) {
+    return res.status(403).json({ error: "Forbidden: Only administrators can export archival backups." });
+  }
+
   const db = getDb();
   const users = db.prepare("SELECT * FROM users").all();
   const households = db.prepare("SELECT * FROM households").all();
@@ -613,7 +815,12 @@ apiRouter.get("/export", (req, res) => {
 });
 
 apiRouter.post("/import", (req, res) => {
-  const data = req.body;
+  const userId = (req.headers["x-user-id"] as string) || req.body?.userId || (req.query?.userId as string);
+  if (!isUserIdAdmin(userId)) {
+    return res.status(403).json({ error: "Forbidden: Only administrators can import archival backups." });
+  }
+
+  const data = req.body?.data || req.body;
   if (!data || !Array.isArray(data.questions) || !Array.isArray(data.users)) {
     return res.status(400).json({ error: "Invalid backup JSON file structure" });
   }
@@ -667,6 +874,11 @@ apiRouter.post("/import", (req, res) => {
 });
 
 apiRouter.post("/seed", (req, res) => {
+  const userId = (req.headers["x-user-id"] as string) || req.body?.userId || (req.query?.userId as string);
+  if (!isUserIdAdmin(userId)) {
+    return res.status(403).json({ error: "Forbidden: Only administrators can seed demo data." });
+  }
+
   const db = getDb();
   seedDemoData(db);
   res.json({ success: true, message: "Demo predictions and track record loaded successfully!" });

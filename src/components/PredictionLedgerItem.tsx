@@ -414,21 +414,26 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
                 ID: {prediction.id}
               </span>
 
-              {Boolean(currentUser && currentUser.id === prediction.creator_id) && (
+              {Boolean(currentUser && (currentUser.id === prediction.creator_id || currentUser.isAdmin)) && (
                 <button
                   type="button"
                   className="btn-ghost"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (window.confirm("Remove this observation from the ledger?")) {
+                    const promptText = currentUser?.isAdmin && currentUser.id !== prediction.creator_id
+                      ? "Admin action: Remove this observation from the ledger?"
+                      : "Remove this observation from the ledger?";
+                    if (window.confirm(promptText)) {
                       onDelete(prediction.id);
                     }
                   }}
                   style={{ color: "var(--mark-no)", fontSize: "0.75rem" }}
-                  title="Delete this prediction (only available to you as the creator)"
+                  title={currentUser?.isAdmin && currentUser.id !== prediction.creator_id
+                    ? "Delete this prediction as Administrator"
+                    : "Delete this prediction (creator)"}
                 >
                   <Trash2 size={12} />
-                  <span>Delete</span>
+                  <span>{currentUser?.isAdmin && currentUser.id !== prediction.creator_id ? "Delete (Admin)" : "Delete"}</span>
                 </button>
               )}
             </div>

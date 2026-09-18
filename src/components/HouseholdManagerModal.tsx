@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Users, Home, Plus, Key, Copy, Check, Shield, UserPlus, X } from "lucide-react";
+import { Users, Home, Plus, Key, Copy, Check, Shield, UserPlus, X, Trash2 } from "lucide-react";
 import { Household, HouseholdMember, User } from "../types";
-import { createHousehold, fetchHouseholdMembers, fetchHouseholds, joinHousehold } from "../api";
+import { createHousehold, fetchHouseholdMembers, fetchHouseholds, joinHousehold, adminDeleteHousehold } from "../api";
 
 interface HouseholdManagerModalProps {
   currentUser: User | null;
@@ -108,6 +108,26 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
     }
   };
 
+  const handleDeleteCircle = async (householdId: string, circleName: string) => {
+    if (!currentUser) return;
+    const isOwner = households.find(h => h.id === householdId)?.creator_id === currentUser.id;
+    const msg = currentUser.isAdmin && !isOwner
+      ? `Administrator Action: Permanently delete circle "${circleName}" and remove all members?`
+      : `Permanently delete circle "${circleName}" and remove all members?`;
+    if (!window.confirm(msg)) return;
+
+    try {
+      await adminDeleteHousehold(currentUser.id, householdId);
+      setHouseholds(prev => prev.filter(h => h.id !== householdId));
+      if (activeHousehold?.id === householdId) {
+        onSelectHousehold(null);
+      }
+      setSuccessMsg(`Circle "${circleName}" removed.`);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete circle");
+    }
+  };
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
@@ -210,7 +230,7 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
                           </div>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                           {!isActive ? (
                             <button
                               type="button"
@@ -224,6 +244,18 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
                             <span style={{ fontSize: "0.72rem", color: "var(--accent-brass)", fontWeight: 700 }}>
                               Active Filter
                             </span>
+                          )}
+
+                          {(h.creator_id === currentUser?.id || currentUser?.isAdmin) && (
+                            <button
+                              type="button"
+                              className="btn-ghost"
+                              onClick={() => handleDeleteCircle(h.id, h.name)}
+                              style={{ color: "var(--mark-no)", padding: "0.25rem 0.4rem", fontSize: "0.72rem" }}
+                              title={currentUser?.isAdmin && h.creator_id !== currentUser?.id ? "Delete Circle as Administrator" : "Delete Circle"}
+                            >
+                              <Trash2 size={12} />
+                            </button>
                           )}
                         </div>
                       </div>

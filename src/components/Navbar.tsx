@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle } from "lucide-react";
+import { Telescope, Database, Sun, Moon, Trophy, Home, HelpCircle, Shield } from "lucide-react";
 import { Household, User } from "../types";
 
 interface NavbarProps {
@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenProfileModal: () => void;
   onOpenBackupModal: () => void;
   onOpenAboutModal: () => void;
+  onOpenAdminModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenBackupModal,
   onOpenAboutModal,
+  onOpenAdminModal,
 }) => {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
@@ -112,6 +114,28 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </button>
 
+        {/* Admin Console Trigger (Only visible to Administrators) */}
+        {currentUser?.isAdmin && onOpenAdminModal && (
+          <button
+            className="btn-subtle nav-admin-btn"
+            onClick={onOpenAdminModal}
+            title="Observatory Administration Console (Manage Users, Circles, Forecasts)"
+            style={{
+              padding: "0.4rem 0.65rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              background: "rgba(245, 208, 97, 0.12)",
+              borderColor: "var(--border-brass)",
+            }}
+          >
+            <Shield size={14} style={{ color: "var(--accent-brass)" }} />
+            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--accent-brass)", letterSpacing: "0.04em" }}>
+              ADMIN
+            </span>
+          </button>
+        )}
+
         {/* Theme Mode Switcher */}
         <button
           className="btn-subtle theme-toggle-btn"
@@ -128,7 +152,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             className="observer-pill"
             onClick={onOpenProfileModal}
-            title="Google Account / Log Out"
+            title={`Account: ${currentUser.name}${currentUser.isAdmin ? " (Administrator)" : ""}`}
+            style={{
+              borderColor: currentUser.isAdmin ? "var(--border-brass)" : undefined
+            }}
           >
             {currentUser.avatar && currentUser.avatar.startsWith("http") ? (
               <img
@@ -140,9 +167,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <span style={{ fontSize: "1.05rem" }}>{currentUser.avatar || "🔭"}</span>
             )}
-            <span style={{ maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {currentUser.name}
             </span>
+            {currentUser.isAdmin && (
+              <span 
+                style={{ 
+                  fontSize: "0.62rem", 
+                  padding: "0.1rem 0.35rem", 
+                  borderRadius: "4px", 
+                  background: "rgba(245, 208, 97, 0.2)", 
+                  color: "var(--accent-brass)", 
+                  fontWeight: 700,
+                  marginLeft: "0.15rem"
+                }}
+              >
+                ADMIN
+              </span>
+            )}
           </button>
         ) : (
           <button
@@ -161,15 +203,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Storage / Backup */}
-        <button
-          className="btn-subtle"
-          onClick={onOpenBackupModal}
-          title="Data Storage, Exports & Seeding"
-          style={{ padding: "0.45rem 0.65rem" }}
-        >
-          <Database size={15} />
-        </button>
+        {/* Archival Storage & Backup (STRICTLY ADMIN ONLY) */}
+        {currentUser?.isAdmin && (
+          <button
+            className="btn-subtle"
+            onClick={onOpenBackupModal}
+            title="Archival Storage, Database Exports & Seeding (Administrator Only)"
+            style={{ padding: "0.45rem 0.65rem", display: "flex", alignItems: "center" }}
+          >
+            <Database size={15} style={{ color: "var(--accent-brass)" }} />
+          </button>
+        )}
       </div>
     </header>
   );
