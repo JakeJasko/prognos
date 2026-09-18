@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { X, LogOut, ShieldCheck, Sparkles, AlertCircle, Shield, Database } from "lucide-react";
+import { X, LogOut, ShieldCheck, Sparkles, AlertCircle, Shield, Database, Calendar, ExternalLink, Copy, Check } from "lucide-react";
 import { User } from "../types";
 import { fetchGoogleConfig, verifyGoogleCredential } from "../api";
 import { UserAvatar } from "./UserAvatar";
+import { getGoogleCalendarSubscribeUrl, getCalendarFeedUrl } from "../utils/calendar";
 
 interface ProfileModalProps {
   currentUser: User | null;
@@ -21,6 +22,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copiedFeed, setCopiedFeed] = useState(false);
+
+  const handleCopyFeed = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedFeed(true);
+    setTimeout(() => setCopiedFeed(false), 2000);
+  };
 
   const initGoogleGsi = (clientId: string) => {
     let attempts = 0;
@@ -259,6 +267,42 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Personal Google Calendar Sync */}
+            <div className="circle-cal-sync-box" style={{ marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: 600, color: "var(--text-primary)" }}>
+                  <Calendar size={13} style={{ color: "var(--accent-brass)" }} />
+                  <span>Personal Calendar Sync</span>
+                </span>
+                <span className="cal-sync-badge">All My Claims</span>
+              </div>
+              <p style={{ fontSize: "0.72rem", color: "var(--text-secondary)", margin: "0.25rem 0 0.5rem", lineHeight: 1.35 }}>
+                Sync all predictions you've created or forecasted on directly to your Google Calendar. Every event links directly to resolve the claim.
+              </p>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                <a
+                  href={getGoogleCalendarSubscribeUrl("user", currentUser.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-google-cal-sync"
+                  title="Subscribe to my predictions in Google Calendar"
+                >
+                  <Calendar size={12} />
+                  <span>Add to Google Calendar</span>
+                  <ExternalLink size={10} />
+                </a>
+                <button
+                  type="button"
+                  className="btn-cal-copy-feed"
+                  onClick={() => handleCopyFeed(getCalendarFeedUrl("user", currentUser.id))}
+                  title="Copy personal iCal feed link"
+                >
+                  {copiedFeed ? <Check size={11} style={{ color: "var(--mark-yes)" }} /> : <Copy size={11} />}
+                  <span>{copiedFeed ? "Feed Copied!" : "Copy Feed URL"}</span>
+                </button>
+              </div>
+            </div>
 
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
               <button

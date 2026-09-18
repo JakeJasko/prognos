@@ -37,6 +37,8 @@ export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isScopeMenuOpen, setIsScopeMenuOpen] = useState(false);
   const scopeMenuRef = useRef<HTMLDivElement>(null);
+  const [targetedPredictionId, setTargetedPredictionId] = useState<string | null>(null);
+  const [autoOpenResolve, setAutoOpenResolve] = useState<boolean>(false);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
@@ -53,6 +55,26 @@ export const App: React.FC = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleUrlDeepLink = () => {
+      const params = new URLSearchParams(window.location.search);
+      const resolveId = params.get("resolve");
+      const predId = params.get("prediction");
+      const target = resolveId || predId;
+
+      if (target) {
+        setTargetedPredictionId(target);
+        setAutoOpenResolve(Boolean(resolveId));
+        setActiveNavTab("observatory");
+        setStatusFilter("all");
+      }
+    };
+
+    handleUrlDeepLink();
+    window.addEventListener("popstate", handleUrlDeepLink);
+    return () => window.removeEventListener("popstate", handleUrlDeepLink);
   }, []);
 
   const loadInitialData = async () => {
@@ -485,6 +507,12 @@ export const App: React.FC = () => {
                     onUpdateForecast={handleAddForecast}
                     onResolve={handleResolve}
                     onDelete={handleDelete}
+                    isTargeted={p.id === targetedPredictionId}
+                    autoOpenResolve={p.id === targetedPredictionId && autoOpenResolve}
+                    onClearTarget={() => {
+                      setTargetedPredictionId(null);
+                      setAutoOpenResolve(false);
+                    }}
                   />
                 ))
               ) : (

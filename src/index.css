@@ -2217,3 +2217,216 @@ h1, h2, h3, .font-display {
   transform: scale(0.92);
 }
 
+/* ---------------------------------------------------- */
+/* Google Calendar Sync & Deep Link Resolution Styles   */
+/* ---------------------------------------------------- */
+.circle-cal-sync-box {
+  background: rgba(245, 208, 97, 0.04);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  margin-top: 0.5rem;
+}
+
+[data-theme="light"] .circle-cal-sync-box {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.cal-sync-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(45, 212, 191, 0.15);
+  color: var(--mark-yes);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.btn-google-cal-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(66, 133, 244, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+[data-theme="light"] .btn-google-cal-sync {
+  background: rgba(26, 115, 232, 0.1);
+  color: #1a73e8;
+  border-color: rgba(26, 115, 232, 0.3);
+}
+
+.btn-google-cal-sync:hover {
+  background: rgba(66, 133, 244, 0.22);
+  color: #93c5fd;
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .btn-google-cal-sync:hover {
+  background: rgba(26, 115, 232, 0.18);
+  color: #1557b0;
+  border-color: #1a73e8;
+}
+
+.btn-cal-copy-feed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-dim);
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 0.32rem 0.6rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cal-copy-feed:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+}
+
+.ledger-cal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.ledger-cal-tag:hover {
+  color: #60a5fa;
+  background: rgba(66, 133, 244, 0.1);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="light"] .ledger-cal-tag:hover {
+  color: #1a73e8;
+  background: rgba(26, 115, 232, 0.08);
+  border-color: rgba(26, 115, 232, 0.25);
+}
+
+/* Deep link target glowing animation */
+@keyframes celestialTargetPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 208, 97, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-brass);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(245, 208, 97, 0.25), 0 8px 24px rgba(245, 208, 97, 0.2);
+    border-color: var(--accent-brass);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 208, 97, 0), 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-brass);
+  }
+}
+
+.celestial-target-pulse {
+  animation: celestialTargetPulse 2.2s ease-in-out 3;
+  border-color: var(--accent-brass) !important;
+}
+
+/* Target Resolution Callout inside Ledger Card */
+.target-resolve-callout {
+  background: linear-gradient(135deg, rgba(245, 208, 97, 0.12) 0%, rgba(45, 212, 191, 0.08) 100%);
+  border: 1px solid var(--border-brass);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.callout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-brass);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.callout-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0.35rem 0 0.75rem;
+  line-height: 1.4;
+}
+
+.callout-resolve-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-outcome-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-outcome-pill.yes {
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--mark-yes);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.btn-outcome-pill.yes:hover,
+.btn-outcome-pill.yes.selected {
+  background: rgba(45, 212, 191, 0.25);
+  border-color: var(--mark-yes);
+  transform: translateY(-1px);
+}
+
+.btn-outcome-pill.no {
+  background: rgba(251, 113, 133, 0.12);
+  color: var(--mark-no);
+  border-color: rgba(251, 113, 133, 0.3);
+}
+
+.btn-outcome-pill.no:hover,
+.btn-outcome-pill.no.selected {
+  background: rgba(251, 113, 133, 0.25);
+  border-color: var(--mark-no);
+  transform: translateY(-1px);
+}
+
+.btn-outcome-pill.ambiguous {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-secondary);
+  border-color: var(--border-dim);
+}
+
+.btn-outcome-pill.ambiguous:hover,
+.btn-outcome-pill.ambiguous.selected {
+  background: rgba(148, 163, 184, 0.22);
+  border-color: var(--text-secondary);
+  transform: translateY(-1px);
+}
+
+

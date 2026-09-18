@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Users, Home, Plus, Key, Copy, Check, Shield, UserPlus, X, Trash2 } from "lucide-react";
+import { Users, Home, Plus, Key, Copy, Check, Shield, UserPlus, X, Trash2, Calendar, ExternalLink } from "lucide-react";
 import { Household, HouseholdMember, User } from "../types";
 import { createHousehold, fetchHouseholdMembers, fetchHouseholds, joinHousehold, adminDeleteHousehold } from "../api";
 import { UserAvatar } from "./UserAvatar";
+import { getGoogleCalendarSubscribeUrl, getCalendarFeedUrl } from "../utils/calendar";
 
 interface HouseholdManagerModalProps {
   currentUser: User | null;
@@ -20,6 +21,7 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
   const [households, setHouseholds] = useState<Household[]>([]);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedFeedId, setCopiedFeedId] = useState<string | null>(null);
 
   const [createName, setCreateName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -27,6 +29,12 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  const handleCopyFeed = (feedUrl: string, id: string) => {
+    navigator.clipboard.writeText(feedUrl);
+    setCopiedFeedId(id);
+    setTimeout(() => setCopiedFeedId(null), 2000);
+  };
 
   const loadHouseholds = async () => {
     if (!currentUser) return;
@@ -298,6 +306,42 @@ export const HouseholdManagerModal: React.FC<HouseholdManagerModalProps> = ({
                           {copiedCode === h.invite_code ? <Check size={11} style={{ color: "var(--mark-yes)" }} /> : <Copy size={11} />}
                           <span>{copiedCode === h.invite_code ? "Copied" : "Copy Code"}</span>
                         </button>
+                      </div>
+
+                      {/* Google Calendar Sync Bar */}
+                      <div className="circle-cal-sync-box">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: 600, color: "var(--text-primary)" }}>
+                            <Calendar size={13} style={{ color: "var(--accent-brass)" }} />
+                            <span>Google Calendar Sync</span>
+                          </span>
+                          <span className="cal-sync-badge">Auto-Updating</span>
+                        </div>
+                        <p style={{ fontSize: "0.72rem", color: "var(--text-secondary)", margin: "0.25rem 0 0.5rem", lineHeight: 1.35 }}>
+                          Sync this circle's prediction deadlines to your personal Google Calendar. Every event includes a 1-click link to resolve the claim.
+                        </p>
+                        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                          <a
+                            href={getGoogleCalendarSubscribeUrl("household", h.id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-google-cal-sync"
+                            title="Subscribe in Google Calendar"
+                          >
+                            <Calendar size={12} />
+                            <span>Add to Google Calendar</span>
+                            <ExternalLink size={10} />
+                          </a>
+                          <button
+                            type="button"
+                            className="btn-cal-copy-feed"
+                            onClick={() => handleCopyFeed(getCalendarFeedUrl("household", h.id), h.id)}
+                            title="Copy iCal feed link for Apple Calendar or Outlook"
+                          >
+                            {copiedFeedId === h.id ? <Check size={11} style={{ color: "var(--mark-yes)" }} /> : <Copy size={11} />}
+                            <span>{copiedFeedId === h.id ? "Feed Copied!" : "Copy Feed URL"}</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Members list preview if active */}

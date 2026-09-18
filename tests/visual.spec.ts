@@ -389,4 +389,116 @@ test.describe("Prognos Visual & Functional Suite", () => {
       fullPage: false,
     });
   });
+
+  test("Google Calendar sync, circle feed links, and deep-linked resolution flow", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-chromium", "Desktop only");
+
+    // Start logged in as Jake
+    await page.goto("http://localhost:3000");
+    await page.evaluate(async () => {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+      const jake = users.find((u: any) => u.name === "Jake") || users[0];
+      if (jake) {
+        localStorage.setItem("prognos_local_user_id", jake.id);
+      }
+    });
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    // Close about modal if open
+    const modalClose = page.locator(".modal-close-btn, button:has-text('Enter Observatory')").first();
+    if (await modalClose.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await modalClose.click();
+      await page.waitForTimeout(300);
+    }
+
+    // 1. Open Circles modal from navbar
+    const circlesNavBtn = page.locator(".nav-household-btn").first();
+    await expect(circlesNavBtn).toBeVisible();
+    await circlesNavBtn.click();
+    await page.waitForTimeout(400);
+
+    const circleModal = page.locator(".dialog-box");
+    await expect(circleModal).toBeVisible();
+
+    // Verify Google Calendar Sync section inside circle card
+    const calSyncBox = circleModal.locator(".circle-cal-sync-box").first();
+    await expect(calSyncBox).toBeVisible();
+
+    const addGoogleCalBtn = calSyncBox.locator("a.btn-google-cal-sync");
+    await expect(addGoogleCalBtn).toBeVisible();
+    const gcalHref = await addGoogleCalBtn.getAttribute("href");
+    expect(gcalHref).toContain("calendar.google.com/calendar/render?cid=");
+    expect(decodeURIComponent(gcalHref || "")).toContain("/api/calendar/household/h_kepler/feed.ics");
+
+    // Capture screenshot of Circle Google Calendar Sync
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_circle_calendar_sync.png"),
+      fullPage: false,
+    });
+
+    // Close Circles modal
+    const closeDialogBtn = circleModal.locator("button[title='Close dialog']").first();
+    await closeDialogBtn.click();
+    await page.waitForTimeout(300);
+
+    // 2. Verify individual prediction items have Google Cal tag
+    const calTag = page.locator(".ledger-cal-tag").first();
+    await expect(calTag).toBeVisible();
+    const itemCalHref = await calTag.getAttribute("href");
+    expect(itemCalHref).toContain("calendar.google.com/calendar/render?action=TEMPLATE");
+    expect(itemCalHref).toContain("resolve%3D");
+
+    // 3. Test Deep Linking from Calendar URL (?resolve=q_hh_2)
+    await page.goto("http://localhost:3000/?resolve=q_hh_2");
+    await page.waitForLoadState("networkidle");
+
+    // Close about modal if re-triggered
+    if (await modalClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await modalClose.click();
+      await page.waitForTimeout(200);
+    }
+
+    // Target card should be visible and pulsating
+    const targetCard = page.locator("#prediction-q_hh_2");
+    await expect(targetCard).toBeVisible();
+    await expect(targetCard).toHaveClass(/celestial-target-pulse/);
+
+    // Target resolution banner should be visible
+    const resolveCallout = targetCard.locator(".target-resolve-callout");
+    await expect(resolveCallout).toBeVisible();
+
+    // Verify outcome buttons
+    const yesBtn = resolveCallout.locator("button", { hasText: "YES Occurred" });
+    const noBtn = resolveCallout.locator("button", { hasText: "NO Did Not Occur" });
+    await expect(yesBtn).toBeVisible();
+    await expect(noBtn).toBeVisible();
+
+    // Capture screenshot of deep-linked resolution card
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_deep_link_resolution.png"),
+      fullPage: false,
+    });
+
+    // 4. Open Profile Modal to verify Personal Calendar Sync
+    const profileBtn = page.locator(".observer-pill").first();
+    await expect(profileBtn).toBeVisible();
+    await profileBtn.click();
+    await page.waitForTimeout(400);
+
+    const profileModal = page.locator(".dialog-box");
+    await expect(profileModal).toBeVisible();
+
+    const personalCalBox = profileModal.locator(".circle-cal-sync-box");
+    await expect(personalCalBox).toBeVisible();
+    const personalCalHref = await personalCalBox.locator("a.btn-google-cal-sync").getAttribute("href");
+    expect(decodeURIComponent(personalCalHref || "")).toContain("/api/calendar/user/");
+
+    // Capture screenshot of Personal Calendar Sync in profile modal
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_personal_calendar_sync.png"),
+      fullPage: false,
+    });
+  });
 });

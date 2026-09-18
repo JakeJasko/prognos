@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { getDb, getSetting, setSetting, seedDemoData, isUserAdmin, isUserIdAdmin, getAdminEmails } from "./db.js";
 import { computeBrierScore, computeCalibrationBuckets, computeLeaderboard, getBrierGrade, ScoredForecast } from "./scoring.js";
+import { generateIcsFeed } from "./calendar.js";
 
 export const apiRouter = Router();
 
@@ -882,4 +883,113 @@ apiRouter.post("/seed", (req, res) => {
   const db = getDb();
   seedDemoData(db);
   res.json({ success: true, message: "Demo predictions and track record loaded successfully!" });
+});
+
+// ----------------------------------------------------
+// Google Calendar Sync (.ics Feed Endpoints)
+// ----------------------------------------------------
+function getCalendarBaseUrl(req: any): string {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.headers["x-forwarded-host"] || req.get("host") || "localhost:3000";
+  return `${protocol}://${host}`;
+}
+
+// 1. Circle / Household iCal Feed (.ics)
+apiRouter.get("/calendar/household/:id/feed.ics", (req, res) => {
+  const { id } = req.params;
+  const db = getDb();
+
+  const household = db.prepare("SELECT * FROM households WHERE id = ?").get(id) as any;
+  if (!household) {
+    return res.status(404).send("Circle not found");
+  }
+
+  const questions = db.prepare(`
+    SELECT q.*, h.name as household_name, u.name as creator_name
+    FROM questions q
+    JOIN households h ON q.household_id = h.id
+    LEFT JOIN users u ON q.creator_id = u.id
+    WHERE q.household_id = ?
+    ORDER BY q.resolve_by ASC
+  `).all(id) as any[];
+
+  const baseUrl = getCalendarBaseUrl(req);
+  const ics = generateIcsFeed({
+    title: `Prognos: ${household.name}`,
+    description: `Forecast resolution deadlines for ${household.name} on Prognos Observatory`,
+    questions,
+    baseUrl,
+  });
+
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${household.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}-predictions.ics"`
+  );
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.send(ics);
+});
+
+// 2. User Personal iCal Feed (.ics)
+apiRouter.get("/calendar/user/:userId/feed.ics", (req, res) => {
+  const { userId } = req.params;
+  const db = getDb();
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as any;
+  if (!user) {
+    return res.status(404).send("User not found");
+  }
+
+  const questions = db.prepare(`
+    SELECT DISTINCT q.*, h.name as household_name, u.name as creator_name
+    FROM questions q
+    LEFT JOIN households h ON q.household_id = h.id
+    LEFT JOIN users u ON q.creator_id = u.id
+    WHERE q.creator_id = ? OR q.id IN (SELECT question_id FROM forecasts WHERE user_id = ?)
+    ORDER BY q.resolve_by ASC
+  `).all(userId, userId) as any[];
+
+  const baseUrl = getCalendarBaseUrl(req);
+  const ics = generateIcsFeed({
+    title: `Prognos: ${user.name}'s Predictions`,
+    description: `Personal prediction resolution deadlines for ${user.name} on Prognos Observatory`,
+    questions,
+    baseUrl,
+  });
+
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader("Content-Disposition", `inline; filename="my-prognos-predictions.ics"`);
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.send(ics);
+});
+
+// 3. Single Prediction .ics Download
+apiRouter.get("/calendar/prediction/:id.ics", (req, res) => {
+  const { id } = req.params;
+  const db = getDb();
+
+  const question = db.prepare(`
+    SELECT q.*, h.name as household_name, u.name as creator_name
+    FROM questions q
+    LEFT JOIN households h ON q.household_id = h.id
+    LEFT JOIN users u ON q.creator_id = u.id
+    WHERE q.id = ?
+  `).get(id) as any;
+
+  if (!question) {
+    return res.status(404).send("Prediction not found");
+  }
+
+  const baseUrl = getCalendarBaseUrl(req);
+  const ics = generateIcsFeed({
+    title: `Prognos: ${question.title}`,
+    description: `Prediction resolution deadline for "${question.title}" on Prognos Observatory`,
+    questions: [question],
+    baseUrl,
+  });
+
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="prediction-${question.id}.ics"`);
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.send(ics);
 });

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Calendar, Clock, CheckCircle2, XCircle, HelpCircle, Trash2, ArrowUpRight, Check, Globe, Home, Users, PlusCircle, Sparkles } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronUp, Calendar, Clock, CheckCircle2, XCircle, HelpCircle, Trash2, ArrowUpRight, Check, Globe, Home, Users, PlusCircle, Sparkles, ExternalLink } from "lucide-react";
 import { Prediction, User } from "../types";
 import { UserAvatar } from "./UserAvatar";
+import { getGoogleCalendarEventUrl } from "../utils/calendar";
 
 interface PredictionLedgerItemProps {
   prediction: Prediction;
@@ -9,6 +10,9 @@ interface PredictionLedgerItemProps {
   onUpdateForecast: (predictionId: string, probability: number, comment?: string) => Promise<void>;
   onResolve: (predictionId: string, resolution: string, resolutionNotes?: string) => Promise<void>;
   onDelete: (predictionId: string) => Promise<void>;
+  isTargeted?: boolean;
+  autoOpenResolve?: boolean;
+  onClearTarget?: () => void;
 }
 
 export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
@@ -17,8 +21,12 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
   onUpdateForecast,
   onResolve,
   onDelete,
+  isTargeted = false,
+  autoOpenResolve = false,
+  onClearTarget,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [newProb, setNewProb] = useState(
     prediction.userProbability !== null && prediction.userProbability !== undefined
       ? Math.round(prediction.userProbability * 100)
@@ -28,6 +36,16 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
   const [resolvingChoice, setResolvingChoice] = useState<"YES" | "NO" | "AMBIGUOUS" | null>(null);
   const [resolutionRetrospect, setResolutionRetrospect] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isTargeted) {
+      setIsExpanded(true);
+      const timer = setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [isTargeted]);
 
   // Probability displays
   const consensusPercent = prediction.communityProbability !== undefined
@@ -76,6 +94,7 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
       setCelebrationText("Outcome Sealed into the Cosmos! 🌌");
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 2400);
+      if (onClearTarget) onClearTarget();
     } finally {
       setLoading(false);
     }
@@ -90,7 +109,12 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
     : "";
 
   return (
-    <div className={`ledger-item ${prediction.resolved ? "is-resolved" : ""}`} style={{ position: "relative" }}>
+    <div
+      ref={cardRef}
+      id={`prediction-${prediction.id}`}
+      className={`ledger-item ${prediction.resolved ? "is-resolved" : ""} ${isTargeted ? "celestial-target-pulse" : ""}`}
+      style={{ position: "relative" }}
+    >
       {showCelebration && (
         <div className="celestial-celebration" aria-live="polite">
           <span className="star-burst s1">✨</span>
@@ -190,6 +214,24 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
                 <span style={{ color: "var(--accent-brass)", opacity: 0.85 }}>
                   {prediction.tags.map((t) => `#${t}`).join(" ")}
                 </span>
+              </>
+            )}
+
+            {!prediction.resolved && (
+              <>
+                <span>•</span>
+                <a
+                  href={getGoogleCalendarEventUrl(prediction)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ledger-cal-tag"
+                  title="Add resolution deadline to Google Calendar with direct resolution link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Calendar size={11} />
+                  <span>Google Cal</span>
+                  <ExternalLink size={9} />
+                </a>
               </>
             )}
           </div>
@@ -328,6 +370,45 @@ export const PredictionLedgerItem: React.FC<PredictionLedgerItemProps> = ({
       <div className={`expandable-panel ${isExpanded ? "expanded" : ""}`}>
         <div className="expandable-inner">
           <div className="expanded-body">
+            {/* Deep Link Quick Resolution Callout */}
+            {isTargeted && autoOpenResolve && !prediction.resolved && (
+              <div className="target-resolve-callout">
+                <div className="callout-header">
+                  <Sparkles size={14} style={{ color: "var(--accent-brass)" }} />
+                  <span>Google Calendar Sync • Time to Record Outcome</span>
+                </div>
+                <p className="callout-desc">
+                  You arrived from your Google Calendar event reminder. Has this event occurred? Select the outcome below to calibrate your ledger:
+                </p>
+                <div className="callout-resolve-actions">
+                  <button
+                    type="button"
+                    className={`btn-outcome-pill yes ${resolvingChoice === "YES" ? "selected" : ""}`}
+                    onClick={() => setResolvingChoice("YES")}
+                  >
+                    <CheckCircle2 size={13} />
+                    <span>YES Occurred</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-outcome-pill no ${resolvingChoice === "NO" ? "selected" : ""}`}
+                    onClick={() => setResolvingChoice("NO")}
+                  >
+                    <XCircle size={13} />
+                    <span>NO Did Not Occur</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-outcome-pill ambiguous ${resolvingChoice === "AMBIGUOUS" ? "selected" : ""}`}
+                    onClick={() => setResolvingChoice("AMBIGUOUS")}
+                  >
+                    <HelpCircle size={13} />
+                    <span>Ambiguous / Void</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Reasoning & Falsification */}
             {prediction.notes && (
               <div className="evidence-box">
