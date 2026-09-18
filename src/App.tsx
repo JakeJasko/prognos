@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Search, Telescope, Sparkles, Globe, Home, UserCheck, Trophy, Tag, Settings, X } from "lucide-react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { Search, Telescope, Sparkles, Globe, Home, UserCheck, Trophy, Tag, Settings, X, ChevronDown } from "lucide-react";
 import {
   fetchPredictions,
   fetchStats,
@@ -35,6 +35,8 @@ export const App: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "resolved" | "due">("active");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScopeMenuOpen, setIsScopeMenuOpen] = useState(false);
+  const scopeMenuRef = useRef<HTMLDivElement>(null);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
@@ -42,6 +44,16 @@ export const App: React.FC = () => {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isMobilePredictOpen, setIsMobilePredictOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (scopeMenuRef.current && !scopeMenuRef.current.contains(e.target as Node)) {
+        setIsScopeMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const loadInitialData = async () => {
     try {
@@ -213,6 +225,28 @@ export const App: React.FC = () => {
 
   const activeCount = predictions.filter((p) => !p.resolved).length;
   const resolvedCount = predictions.filter((p) => p.resolved).length;
+  const dueSoonCount = useMemo(() => {
+    const nextWeek = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    return predictions.filter((p) => {
+      if (p.resolved) return false;
+      const resolveDate = new Date(p.resolve_by).getTime();
+      return resolveDate <= nextWeek;
+    }).length;
+  }, [predictions]);
+
+  const getScopeInfo = () => {
+    switch (scopeFilter) {
+      case "public":
+        return { icon: <Globe size={12} />, label: "Public" };
+      case "household":
+        return { icon: <Home size={12} />, label: activeHousehold ? activeHousehold.name : "Circles" };
+      case "my":
+        return { icon: <UserCheck size={12} />, label: "Mine" };
+      case "all":
+      default:
+        return { icon: <Globe size={12} />, label: "All Scopes" };
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -259,97 +293,138 @@ export const App: React.FC = () => {
               />
             </div>
 
-            {/* Unified Filter Bar */}
+            {/* Linear-Style Command Toolbar */}
             <div className="unified-filter-bar">
-              {/* Scope Selector */}
-              <div className="filter-group filter-scope-group">
+              {/* Left: Segmented Status Lifecycle Control */}
+              <div className="segmented-status-control" role="tablist" aria-label="Prediction lifecycle status">
                 <button
                   type="button"
-                  className={`unified-pill ${scopeFilter === "all" ? "active" : ""}`}
-                  onClick={() => handleScopeChange("all")}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  className={`unified-pill ${scopeFilter === "public" ? "active" : ""}`}
-                  onClick={() => handleScopeChange("public")}
-                  title="Public Commons"
-                >
-                  <Globe size={12} />
-                  <span>Public</span>
-                </button>
-                <button
-                  type="button"
-                  className={`unified-pill ${scopeFilter === "household" ? "active" : ""}`}
-                  onClick={() => handleScopeChange("household")}
-                  title={activeHousehold ? `Circle: ${activeHousehold.name}` : "Circles"}
-                >
-                  <Home size={12} />
-                  <span>{activeHousehold ? activeHousehold.name : "Circles"}</span>
-                </button>
-                {scopeFilter === "household" && (
-                  <button
-                    type="button"
-                    className="toolbar-icon-btn"
-                    onClick={() => setIsHouseholdOpen(true)}
-                    title="Circle settings & invites"
-                  >
-                    <Settings size={12} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={`unified-pill ${scopeFilter === "my" ? "active" : ""}`}
-                  onClick={() => handleScopeChange("my")}
-                  title="My Claims"
-                >
-                  <UserCheck size={12} />
-                  <span>Mine</span>
-                </button>
-              </div>
-
-              <div className="filter-divider" />
-
-              {/* Status Selector */}
-              <div className="filter-group filter-status-group">
-                <button
-                  type="button"
-                  className={`unified-pill ${statusFilter === "active" ? "active" : ""}`}
+                  role="tab"
+                  aria-selected={statusFilter === "active"}
+                  className={`status-segment-btn ${statusFilter === "active" ? "active" : ""}`}
                   onClick={() => setStatusFilter("active")}
                 >
-                  Active <span className="pill-count">{activeCount}</span>
+                  <span>Active</span>
+                  <span className="segment-count">{activeCount}</span>
                 </button>
                 <button
                   type="button"
-                  className={`unified-pill ${statusFilter === "due" ? "active" : ""}`}
+                  role="tab"
+                  aria-selected={statusFilter === "due"}
+                  className={`status-segment-btn ${statusFilter === "due" ? "active" : ""}`}
                   onClick={() => setStatusFilter("due")}
                   title="Resolving within 7 days"
                 >
-                  Due Soon
+                  <span>Due Soon</span>
+                  {dueSoonCount > 0 && <span className="segment-count highlight">{dueSoonCount}</span>}
                 </button>
                 <button
                   type="button"
-                  className={`unified-pill ${statusFilter === "resolved" ? "active" : ""}`}
+                  role="tab"
+                  aria-selected={statusFilter === "resolved"}
+                  className={`status-segment-btn ${statusFilter === "resolved" ? "active" : ""}`}
                   onClick={() => setStatusFilter("resolved")}
                 >
-                  Resolved <span className="pill-count">{resolvedCount}</span>
+                  <span>Resolved</span>
+                  <span className="segment-count">{resolvedCount}</span>
                 </button>
                 <button
                   type="button"
-                  className={`unified-pill ${statusFilter === "all" ? "active" : ""}`}
+                  role="tab"
+                  aria-selected={statusFilter === "all"}
+                  className={`status-segment-btn ${statusFilter === "all" ? "active" : ""}`}
                   onClick={() => setStatusFilter("all")}
                 >
-                  All <span className="pill-count">{predictions.length}</span>
+                  <span>All</span>
+                  <span className="segment-count">{predictions.length}</span>
                 </button>
               </div>
 
-              <div className="filter-spacer" />
+              {/* Right: Facet Refinement Toolbar Actions */}
+              <div className="filter-toolbar-actions">
+                {/* Scope Filter Dropdown */}
+                <div className="scope-dropdown-container" ref={scopeMenuRef}>
+                  <button
+                    type="button"
+                    className={`toolbar-dropdown-btn ${scopeFilter !== "all" ? "has-filter" : ""}`}
+                    onClick={() => setIsScopeMenuOpen(!isScopeMenuOpen)}
+                    aria-haspopup="listbox"
+                    aria-expanded={isScopeMenuOpen}
+                    title="Filter scope of claims"
+                  >
+                    {getScopeInfo().icon}
+                    <span className="toolbar-btn-label">{getScopeInfo().label}</span>
+                    <ChevronDown size={11} className={`dropdown-chevron ${isScopeMenuOpen ? "open" : ""}`} />
+                  </button>
 
-              {/* Search & Tags */}
-              <div className="filter-group filter-search-group">
+                  {isScopeMenuOpen && (
+                    <div className="scope-popover-menu" role="listbox">
+                      <div className="scope-menu-header">Filter Scope</div>
+                      <button
+                        type="button"
+                        className={`scope-menu-item ${scopeFilter === "all" ? "active" : ""}`}
+                        onClick={() => {
+                          handleScopeChange("all");
+                          setIsScopeMenuOpen(false);
+                        }}
+                      >
+                        <Globe size={13} />
+                        <span>All Scopes</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`scope-menu-item ${scopeFilter === "public" ? "active" : ""}`}
+                        onClick={() => {
+                          handleScopeChange("public");
+                          setIsScopeMenuOpen(false);
+                        }}
+                      >
+                        <Globe size={13} />
+                        <span>Public Commons</span>
+                      </button>
+                      <div className="scope-menu-item-row">
+                        <button
+                          type="button"
+                          className={`scope-menu-item flex-item ${scopeFilter === "household" ? "active" : ""}`}
+                          onClick={() => {
+                            handleScopeChange("household");
+                            setIsScopeMenuOpen(false);
+                          }}
+                        >
+                          <Home size={13} />
+                          <span>{activeHousehold ? activeHousehold.name : "Circles"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="scope-settings-icon-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsScopeMenuOpen(false);
+                            setIsHouseholdOpen(true);
+                          }}
+                          title="Circle settings & invites"
+                        >
+                          <Settings size={12} />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        className={`scope-menu-item ${scopeFilter === "my" ? "active" : ""}`}
+                        onClick={() => {
+                          handleScopeChange("my");
+                          setIsScopeMenuOpen(false);
+                        }}
+                      >
+                        <UserCheck size={13} />
+                        <span>My Predictions</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tag Filter */}
                 {allTags.length > 0 && (
-                  <div className="unified-tag-wrapper">
+                  <div className={`unified-tag-wrapper ${selectedTag ? "has-filter" : ""}`}>
                     <Tag size={12} style={{ color: selectedTag ? "var(--accent-brass)" : "var(--text-muted)", flexShrink: 0 }} />
                     <select
                       className="unified-tag-select"
@@ -357,7 +432,7 @@ export const App: React.FC = () => {
                       onChange={(e) => setSelectedTag(e.target.value || null)}
                       aria-label="Filter by tag"
                     >
-                      <option value="">All Tags</option>
+                      <option value="">Tags</option>
                       {allTags.map((t) => (
                         <option key={t} value={t}>#{t}</option>
                       ))}
@@ -375,6 +450,7 @@ export const App: React.FC = () => {
                   </div>
                 )}
 
+                {/* Search Input */}
                 <div className="unified-search-wrapper">
                   <Search size={13} style={{ opacity: 0.6, flexShrink: 0 }} />
                   <input

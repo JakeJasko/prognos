@@ -141,12 +141,64 @@ test.describe("Prognos Visual & Functional Suite", () => {
     await ledgerBtn.click();
     await expect(page.locator(".creator-prompt", { hasText: "New Observation & Probability" })).toBeVisible();
 
+    // Verify Linear-style Command Toolbar
+    const commandToolbar = page.locator(".unified-filter-bar");
+    await expect(commandToolbar).toBeVisible();
+
+    const segmentedControlStatus = commandToolbar.locator(".segmented-status-control");
+    await expect(segmentedControlStatus).toBeVisible();
+
+    // Verify status tabs
+    const activeTab = segmentedControlStatus.locator(".status-segment-btn", { hasText: "Active" });
+    const dueTab = segmentedControlStatus.locator(".status-segment-btn", { hasText: "Due Soon" });
+    const resolvedTab = segmentedControlStatus.locator(".status-segment-btn", { hasText: "Resolved" });
+    const allTab = segmentedControlStatus.locator(".status-segment-btn", { hasText: "All" });
+
+    await expect(activeTab).toBeVisible();
+    await expect(dueTab).toBeVisible();
+    await expect(resolvedTab).toBeVisible();
+    await expect(allTab).toBeVisible();
+    await expect(activeTab).toHaveClass(/active/);
+
+    // Verify Scope dropdown trigger
+    const scopeBtn = commandToolbar.locator(".toolbar-dropdown-btn");
+    await expect(scopeBtn).toBeVisible();
+    await expect(scopeBtn).toHaveText(/All Scopes/);
+
+    // Open Scope Popover Menu
+    await scopeBtn.click();
+    const scopePopover = commandToolbar.locator(".scope-popover-menu");
+    await expect(scopePopover).toBeVisible();
+
+    // Capture popover open screenshot in dark mode
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_command_toolbar_popover.png"),
+      fullPage: false,
+    });
+
+    // Select Public Commons
+    const publicOption = scopePopover.locator(".scope-menu-item", { hasText: "Public Commons" });
+    await expect(publicOption).toBeVisible();
+    await publicOption.click();
+
+    // Verify popover closed and button shows Public with has-filter styling
+    await expect(scopePopover).toBeHidden();
+    await expect(scopeBtn).toHaveText(/Public/);
+    await expect(scopeBtn).toHaveClass(/has-filter/);
+
+    // Switch back to All Scopes
+    await scopeBtn.click();
+    await expect(scopePopover).toBeVisible();
+    await scopePopover.locator(".scope-menu-item", { hasText: "All Scopes" }).click();
+    await expect(scopeBtn).toHaveText(/All Scopes/);
+    await expect(scopeBtn).not.toHaveClass(/has-filter/);
+
     // Toggle to Light mode
     const themeBtn = page.locator(".theme-toggle-btn");
     await themeBtn.click();
     await page.waitForTimeout(400);
 
-    // Capture desktop light mode navbar
+    // Capture desktop light mode navbar & toolbar
     await page.screenshot({
       path: path.join(ARTIFACTS_DIR, "headless_desktop_light.png"),
       fullPage: false,
@@ -248,6 +300,14 @@ test.describe("Prognos Visual & Functional Suite", () => {
     const mobileLedgerBtn = page.locator(".mobile-bottom-nav button", { hasText: "Ledger" });
     await mobileLedgerBtn.click();
     await page.waitForTimeout(300);
+
+    // Verify mobile Command Toolbar
+    const mobileToolbar = page.locator(".unified-filter-bar");
+    await expect(mobileToolbar).toBeVisible();
+    await page.screenshot({
+      path: path.join(ARTIFACTS_DIR, "headless_mobile_command_toolbar.png"),
+      fullPage: false,
+    });
 
     // Open Account / Profile Modal on mobile via bottom nav Account button
     const accountBtn = page.locator(".mobile-bottom-nav button", { hasText: /Account|Sign In/i });
