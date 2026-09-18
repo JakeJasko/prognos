@@ -114,10 +114,15 @@ test.describe("Prognos Visual & Functional Suite", () => {
       }
     });
 
-    // Refresh Leaderboard
-    const refreshBtn = page.locator("button[title='Refresh Leaderboard']");
-    await refreshBtn.click();
-    await page.waitForTimeout(400);
+    // Verify unnecessary refresh button has been removed
+    await expect(page.locator("button[title='Refresh Leaderboard']")).toHaveCount(0);
+
+    // Toggle All Time and back to Year to refresh leaderboard data
+    await allTimeBtn.click();
+    await page.waitForTimeout(200);
+    const yearTabBtn = segmentedControl.locator(".segmented-tab-btn").first();
+    await yearTabBtn.click();
+    await page.waitForTimeout(300);
 
     // Verify user avatar image is rendered with class user-avatar-img
     const avatarImg = page.locator(".user-avatar-img").first();

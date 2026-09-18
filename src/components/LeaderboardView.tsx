@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Trophy, Medal, Lock, Sparkles, RefreshCw, HelpCircle, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Trophy, Medal, Lock, Sparkles, HelpCircle, ArrowUpRight, TrendingUp } from "lucide-react";
 import { LeaderboardEntry, LeaderboardResponse, User } from "../types";
 import { fetchLeaderboard } from "../api";
 import { UserAvatar } from "./UserAvatar";
@@ -77,8 +77,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.25rem",
-                padding: period === "year" ? "0.25rem 0.55rem" : "0.38rem 0.95rem",
+                gap: "0.2rem",
+                padding: "0.25rem 0.5rem",
                 cursor: "pointer"
               }}
               onClick={() => {
@@ -90,40 +90,41 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
                 }
               }}
             >
-              {period === "year" && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedYear((y) => y - 1);
-                  }}
-                  title="Previous year"
-                  aria-label="Previous year"
-                  className="year-stepper-btn"
-                >
-                  ◀
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPeriod("year");
+                  setSelectedYear((y) => y - 1);
+                }}
+                title="Previous year"
+                aria-label="Previous year"
+                className="year-stepper-btn"
+              >
+                ◀
+              </button>
 
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0 0.2rem" }}>
                 <span>📅</span>
                 <span className="year-display">{selectedYear}</span>
               </span>
 
-              {period === "year" && selectedYear < currentYear && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (selectedYear < currentYear) {
+                    setPeriod("year");
                     setSelectedYear((y) => y + 1);
-                  }}
-                  title="Next year"
-                  aria-label="Next year"
-                  className="year-stepper-btn"
-                >
-                  ▶
-                </button>
-              )}
+                  }
+                }}
+                disabled={selectedYear >= currentYear}
+                title={selectedYear >= currentYear ? "Latest year" : "Next year"}
+                aria-label="Next year"
+                className="year-stepper-btn"
+              >
+                ▶
+              </button>
             </div>
 
             <button
@@ -134,17 +135,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ currentUser })
               🌌 All Time
             </button>
           </div>
-
-          <button
-            type="button"
-            className="btn-subtle"
-            onClick={() => loadLeaderboard(period, selectedYear)}
-            title="Refresh Leaderboard"
-            style={{ padding: "0.45rem" }}
-            disabled={loading}
-          >
-            <RefreshCw size={14} className={loading ? "spin" : ""} />
-          </button>
         </div>
       </div>
 
